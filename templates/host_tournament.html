@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Host a Tournament{% endblock %}
+
+
+{% block content %}
+
+
+<div class="min-h-screen flex flex-col items-center py-10">
+ <!-- Logo -->
+ <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 mb-6">
+
+
+ <div class="w-full max-w-4xl bg-black text-white rounded-2xl shadow-2xl p-8 backdrop-blur-md border border-gray-700">
+   <h2 class="text-3xl font-bold mb-6 text-center">Host a New Tournament</h2>
+
+
+   <form method="post" class="space-y-6">
+     {% csrf_token %}
+     {{ form.name.label_tag }}
+     {{ form.name|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     {{ form.description.label_tag }}
+     {{ form.description|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     {{ form.category.label_tag }}
+     {{ form.category|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     {{ form.num_participants.label_tag }}
+     {{ form.num_participants|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     {{ form.match_type.label_tag }}
+     {{ form.match_type|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     {{ form.players.label_tag }}
+     {{ form.players|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+
+
+     <button type="submit" class="w-full py-3 px-6 rounded bg-orange-600 hover:bg-orange-700 transition font-semibold text-white shadow-md">
+       Create Tournament
+     </button>
+   </form>
+ </div>
+</div>
+
+
+<!-- Modal -->
+{% if tournament_code %}
+<div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80">
+ <div class="relative bg-gray-900 text-white rounded-lg shadow-lg p-6 w-96 border border-gray-700">
+   <!-- Close Icon -->
+   <button id="closeModal" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold">
+     &times;
+   </button>
+   <h2 class="text-xl font-bold mb-4 text-center">🎉 Congratulations!</h2>
+   <p class="mb-4 text-center">Your tournament was created successfully.</p>
+   <p class="mb-4 text-center">Here is your unique code:</p>
+   <div class="text-center text-2xl font-bold text-orange-500">{{ tournament_code }}</div>
+   <div class="mt-6 flex justify-center space-x-4">
+     <button id="closeModalButton" class="py-2 px-4 bg-gray-700 text-white rounded hover:bg-gray-800 transition">
+       Close
+     </button>
+     <a href="{% url 'tournament_dashboard' tournament_id=tournament.id %}" class="py-2 px-4 bg-orange-600 text-white rounded hover:bg-orange-700 transition">
+       Go to Dashboard
+     </a>
+   </div>
+ </div>
+</div>
+{% endif %}
+
+
+<script>
+ document.addEventListener('DOMContentLoaded', function () {
+   const modal = document.getElementById('successModal');
+   if (modal) {
+     const closeModal = document.getElementById('closeModal');
+     const closeModalButton = document.getElementById('closeModalButton');
+     [closeModal, closeModalButton].forEach(button => {
+       button.addEventListener('click', function () {
+         modal.style.display = 'none'; // Hide the modal
+       });
+     });
+   } else {
+     console.error('Modal not found in the DOM.');
+   }
+ });
+</script>
+
+
+{% endblock %}
