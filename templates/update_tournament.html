@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+
+{% block title %}Update Tournament{% endblock %}
+
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen">
+   <div class="max-w-4xl w-full p-6 bg-gray-800 bg-opacity-80 shadow-md rounded-lg text-white">
+       <!-- Tournify Logo -->
+       <div class="flex justify-center mb-6">
+           <img src="{% static 'images/logo.png' %}" alt="Tournify Logo" class="w-32 h-32">
+       </div>
+
+
+       <h1 class="text-3xl font-bold mb-4 text-orange-500 text-center">Update Tournament</h1>
+       <form method="post" class="space-y-6">
+           {% csrf_token %}
+           <div class="space-y-4">
+               <!-- Name Field -->
+               <div>
+                   <label for="id_name" class="block text-sm font-medium text-gray-300">Name</label>
+                   <input type="text" name="name" id="id_name" value="{{ form.name.value }}"
+                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">
+               </div>
+
+
+               <!-- Description Field -->
+               <div>
+                   <label for="id_description" class="block text-sm font-medium text-gray-300">Description</label>
+                   <textarea name="description" id="id_description" rows="4"
+                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">{{ form.description.value }}</textarea>
+               </div>
+
+
+               <!-- Category Field -->
+               <div>
+                   <label for="id_category" class="block text-sm font-medium text-gray-300">Category</label>
+                   {{ form.category }}
+               </div>
+
+
+               <!-- Number of Participants Field -->
+               <div>
+                   <label for="id_num_participants" class="block text-sm font-medium text-gray-300">Number of Participants</label>
+                   <input type="number" name="num_participants" id="id_num_participants" value="{{ form.num_participants.value }}"
+                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">
+               </div>
+
+
+               <!-- Match Type Field -->
+               <div>
+                   <label for="id_match_type" class="block text-sm font-medium text-gray-300">Match Type</label>
+                   {{ form.match_type }}
+               </div>
+
+
+               <!-- Players Field -->
+               <div>
+                   <label for="id_players" class="block text-sm font-medium text-gray-300">Players</label>
+                   <textarea name="players" id="id_players" rows="5"
+                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">{{ form.players.value }}</textarea>
+               </div>
+           </div>
+
+
+           <!-- Save Changes Button -->
+           <div class="flex justify-center">
+               <button type="submit" class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition duration-300">
+                   Save Changes
+               </button>
+           </div>
+       </form>
+   </div>
+</div>
+{% endblock %}
