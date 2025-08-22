@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Login</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+
+
+   <style>
+       /* White Glow Effect for Logo */
+       .drop-shadow-white-glow {
+           filter: drop-shadow(0 0 10px #ffffff) drop-shadow(0 0 20px #ffffff);
+       }
+
+
+       /* Fade In & Fade Out Transitions */
+       .fade-transition {
+           transition: background-color 0.5s, opacity 0.5s ease-in-out;
+       }
+   </style>
+</head>
+
+
+<body class="relative flex items-center justify-center min-h-screen bg-black fade-transition opacity-0">
+
+
+   <!-- Video Background -->
+   <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0" poster="{% static 'images/fallback.jpg' %}">
+       <source src="{% static 'videos/Bg_Video.mp4' %}" type="video/mp4">
+   </video>
+
+
+   <!-- Dark overlay -->
+   <div class="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+
+
+   <!-- Logo with White Glow -->
+   <div class="absolute top-28 w-full flex justify-center z-30">
+       <img src="{% static 'images/logo.png' %}"
+            alt="Logo"
+            class="w-36 drop-shadow-white-glow">
+   </div>
+
+
+   <!-- Login Panel -->
+   <div class="relative z-20 bgbg-black/50 bg-opacity-20 backdrop-blur-md p-8 rounded-lg shadow-lg max-w-md w-full flex flex-col items-center">
+
+
+       <!-- Login Title -->
+       <h1 class="text-3xl font-bold text-center text-white mb-6">Login</h1>
+
+
+       <!-- Login Form -->
+       <form method="POST" class="space-y-4 w-full">
+           {% csrf_token %}
+           <input type="text" name="username" placeholder="Username"
+                  class="w-full p-3 rounded bg-white bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+
+           <input type="password" name="password" placeholder="Password"
+                  class="w-full p-3 rounded bg-white bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+
+           <button type="submit"
+                   class="w-full bg-orange-500 text-white p-3 rounded hover:bg-orange-600 transition">
+               Login
+           </button>
+       </form>
+
+
+       <!-- Register Link -->
+       <div class="text-center mt-4">
+           <a class="text-white">Don't have an account? </a>
+           <a href="{% url 'register' %}" class="text-white underline"> Register here</a>
+       </div>
+
+
+   </div>
+
+
+   <!-- Fade Transition Script -->
+   <script>
+       document.addEventListener('DOMContentLoaded', () => {
+           // Apply black fade-in effect on page load
+           document.body.classList.remove('opacity-0');
+           document.body.classList.add('opacity-100');
+       });
+
+
+       document.querySelectorAll('a').forEach(link => {
+           link.addEventListener('click', function(e) {
+               const href = this.getAttribute('href');
+               if (href && !href.startsWith('#') && !href.startsWith('javascript')) {
+                   e.preventDefault();
+                   // Apply black fade-out effect
+                   document.body.style.backgroundColor = "black"; // Change background to black
+                   document.body.classList.remove('opacity-100');
+                   document.body.classList.add('opacity-0');
+                   setTimeout(() => {
+                       window.location.href = href;
+                   }, 500); // Timeout for fade-out
+               }
+           });
+       });
+   </script>
+
+
+</body>
+
+
+</html>
