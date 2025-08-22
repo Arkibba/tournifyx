@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>TournifyX | Home</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <script src="https://cdn.tailwindcss.com"></script>
+ <style>
+   html, body {
+     margin: 0;
+     padding: 0;
+     height: 100%;
+     overflow: hidden;
+   }
+ </style>
+</head>
+<body class="relative h-screen text-white">
+
+
+ <img
+   id="fallbackImage"
+   src="static/images/bg.jpeg"
+   alt="Background"
+   class="absolute top-0 left-0 w-full h-full object-cover z-0"
+ />
+
+
+ <video
+   id="introVideo"
+   class="absolute top-0 left-0 w-full h-full object-cover z-0 hidden"
+   autoplay
+   muted
+   playsinline
+ >
+   <source src="static/videos/bg_vid.mp4" type="video/mp4">
+   Your browser does not support the video tag.
+ </video>
+
+
+ <!-- Navigation Bar -->
+ <nav class="absolute top-0 left-0 w-full z-20 bg-black shadow-md">
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="flex justify-between h-16 items-center">
+       <div class="flex items-center space-x-4">
+         <!-- Logo -->
+         <img src="static/images/logo.png" alt="Logo" class="w-10 h-10">
+         <div class="text-2xl font-bold text-white">
+           TournifyX
+         </div>
+       </div>
+       <div class="hidden md:flex space-x-6">
+         <a href="#" class="text-gray-200 hover:text-white hover:underline">Home</a>
+         <a href="{% url 'user_tournaments' %}" class="text-gray-200 hover:text-white hover:underline">Tournaments</a>
+         <a href="{% url 'about' %}" class="text-gray-200 hover:text-white hover:underline">About</a>
+         <!-- Replace "Get Started" button with "Log Out" -->
+         <a href="{% url 'logout' %}" class="text-gray-200 hover:text-white hover:underline">Log Out</a>
+       </div>
+     </div>
+   </div>
+ </nav>
+
+
+ <!-- Main Overlay Content -->
+ <div class="relative z-10 flex items-center justify-center h-full px-4">
+   <div class="text-center">
+     <h1 class="text-5xl font-bold mb-4">Welcome to TournifyX</h1>
+     <p class="text-lg text-white/80 mb-8">Manage your tournaments like a pro.</p>
+     <!-- New Tournament Button -->
+     <a href="{% url 'host_tournament' %}" class="mt-6 px-8 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition duration-300 shadow-lg inline-block">
+       Create a Tournament
+     </a>
+     <!-- Join Tournament Button -->
+     <a href="{% url 'join_tournament' %}" class="mt-6 ml-4 px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition duration-300 shadow-lg inline-block">
+       Join a Tournament
+     </a>
+   </div>
+ </div>
+
+
+ <!-- Modal (Pop-up Window) -->
+ <div id="myModal" class="fixed inset-0 flex items-center justify-center z-30 hidden bg-gray-900 bg-opacity-50">
+   <div class="bg-white p-6 rounded-lg max-w-sm w-full">
+     <h2 class="text-2xl font-bold mb-4 text-center">Get Started</h2>
+     <div class="flex justify-center space-x-4">
+       <button id="hostTournament" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Host a Tournament</button>
+       <button id="joinTournament" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-700">Join a Tournament</button>
+     </div>
+
+
+     <!-- Hidden Forms -->
+     <div id="hostForm" class="hidden mt-4">
+       <h3 class="text-xl font-semibold mb-4">Host a Tournament</h3>
+       <form action="/host" method="POST">
+         <input type="text" name="tournamentName" placeholder="Tournament Name" class="w-full p-2 mb-4 border rounded">
+         <input type="date" name="date" class="w-full p-2 mb-4 border rounded">
+         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">Create Tournament</button>
+       </form>
+     </div>
+
+
+     <div id="joinForm" class="hidden mt-4">
+       <h3 class="text-xl font-semibold mb-4">Join a Tournament</h3>
+       <form action="/join_tournament" method="POST">
+         <input type="text" name="tournamentId" placeholder="Tournament ID" class="w-full p-2 mb-4 border rounded">
+         <button type="submit" class="w-full bg-green-600 text-white py-2 rounded">Join Tournament</button>
+       </form>
+     </div>
+   </div>
+ </div>
+
+
+ <!-- JS to handle video fallback and modal toggle -->
+ <script>
+   const video = document.getElementById('introVideo');
+   const fallbackImage = document.getElementById('fallbackImage');
+   const modal = document.getElementById('myModal');
+   const openModalBtn = document.getElementById('openModal');
+   const hostForm = document.getElementById('hostForm');
+   const joinForm = document.getElementById('joinForm');
+   const hostBtn = document.getElementById('hostTournament');
+   const joinBtn = document.getElementById('joinTournament');
+
+
+   // Show the video and hide the fallback image when the video is ready to play
+   video.addEventListener('canplay', () => {
+     fallbackImage.classList.add('hidden');
+     video.classList.remove('hidden');
+   });
+
+
+   // Show the fallback image if the video ends
+   video.addEventListener('ended', () => {
+     video.classList.add('hidden');
+     fallbackImage.classList.remove('hidden');
+   });
+
+
+   // Open modal
+   openModalBtn.addEventListener('click', () => {
+     modal.classList.remove('hidden');
+   });
+
+
+   // Show host form
+   hostBtn.addEventListener('click', () => {
+     hostForm.classList.remove('hidden');
+     joinForm.classList.add('hidden');
+   });
+
+
+   // Show join form
+   joinBtn.addEventListener('click', () => {
+     joinForm.classList.remove('hidden');
+     hostForm.classList.add('hidden');
+   });
+
+
+   // Close modal if clicked outside
+   modal.addEventListener('click', (event) => {
+     if (event.target === modal) {
+       modal.classList.add('hidden');
+     }
+   });
+ </script>
+
+
+</body>
+</html>
