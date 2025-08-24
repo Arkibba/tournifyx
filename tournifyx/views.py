@@ -183,12 +183,11 @@ def tournament_dashboard(request, tournament_id):
 
 @login_required(login_url='login')
 def user_tournaments(request):
-    try:
-        host_profile = HostProfile.objects.get(user=request.user)
-    except HostProfile.DoesNotExist:
-        return HttpResponseForbidden("You are not authorized to view this page.")
+    user_profile = UserProfile.objects.get(user=request.user)
+    host_profile = HostProfile.objects.filter(user=request.user).first()
 
-    tournaments = Tournament.objects.filter(created_by=host_profile)
+    hosted_tournaments = Tournament.objects.filter(created_by=host_profile) if host_profile else Tournament.objects.none()
+    joined_tournaments = Tournament.objects.filter(tournamentparticipant__user_profile=user_profile).exclude(created_by=host_profile).distinct()
 
     if request.method == 'POST':
         tournament_id = request.POST.get('tournament_id')
@@ -197,10 +196,12 @@ def user_tournaments(request):
         if action == 'delete':
             Tournament.objects.filter(id=tournament_id, created_by=host_profile).delete()
         elif action == 'update':
-            # Redirect to a tournament update page (to be implemented)
             return redirect('update_tournament', tournament_id=tournament_id)
 
-    return render(request, 'user_tournaments.html', {'tournaments': tournaments})
+    return render(request, 'user_tournaments.html', {
+        'hosted_tournaments': hosted_tournaments,
+        'joined_tournaments': joined_tournaments,
+    })
 
 
 @login_required(login_url='login')

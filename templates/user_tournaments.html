@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load widget_tweaks %}
 {% block title %}My Tournaments{% endblock %}
-
 
 {% block content %}
 <div class="min-h-screen bg-transparent text-white py-10 flex items-center justify-center">
@@ -16,38 +14,58 @@
        <h1 class="text-4xl font-extrabold mb-8 text-center text-orange-500">My Tournaments</h1>
 
 
-       {% if tournaments %}
-           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {% for tournament in tournaments %}
-                   <div class="bg-black bg-opacity-60 rounded-lg shadow-md p-6 hover:shadow-xl transition">
-                       <h2 class="text-2xl font-bold text-orange-400 mb-2">{{ tournament.name }}</h2>
-                       <p class="text-gray-300 mb-4">{{ tournament.description }}</p>
-                       <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
-                       <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
-                       <p class="text-sm"><strong>Created At:</strong> {{ tournament.created_at|date:"M d, Y H:i" }}</p>
-
-
-                       <form method="POST" class="mt-6 flex justify-between">
-                           {% csrf_token %}
-                           <input type="hidden" name="tournament_id" value="{{ tournament.id }}">
-                           <button type="submit" name="action" value="update" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                               Update
-                           </button>
-                           <button type="submit" name="action" value="delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                               Delete
-                           </button>
-                       </form>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+           <!-- Hosted Tournaments -->
+           <div>
+               <h2 class="text-2xl font-bold text-orange-400 mb-4 text-center">Hosted Tournaments</h2>
+               {% if hosted_tournaments %}
+                   <div class="space-y-6">
+                       {% for tournament in hosted_tournaments %}
+                           <div class="bg-black bg-opacity-60 rounded-lg shadow-md p-6 hover:shadow-xl transition">
+                               <h3 class="text-xl font-bold mb-2">{{ tournament.name }}</h3>
+                               <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
+                               <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
+                               <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
+                               <form method="POST" class="mt-4 flex justify-between">
+                                   {% csrf_token %}
+                                   <input type="hidden" name="tournament_id" value="{{ tournament.id }}">
+                                   <button type="submit" name="action" value="update" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                       Update
+                                   </button>
+                                   <button type="submit" name="action" value="delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                       Delete
+                                   </button>
+                               </form>
+                           </div>
+                       {% endfor %}
                    </div>
-               {% endfor %}
+               {% else %}
+                   <p class="text-center text-gray-400">You have not hosted any tournaments yet.</p>
+               {% endif %}
            </div>
-       {% else %}
-           <div class="text-center mt-16">
-               <p class="text-lg text-gray-400">You have not created any tournaments yet.</p>
-               <a href="{% url 'host_tournament' %}" class="mt-4 inline-block px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-                   Host a Tournament
-               </a>
+
+           <!-- Joined Tournaments -->
+           <div>
+               <h2 class="text-2xl font-bold text-green-400 mb-4 text-center">Joined Tournaments</h2>
+               {% if joined_tournaments %}
+                   <div class="space-y-6">
+                       {% for tournament in joined_tournaments %}
+                           <div class="bg-black bg-opacity-60 rounded-lg shadow-md p-6 hover:shadow-xl transition">
+                               <h3 class="text-xl font-bold mb-2">{{ tournament.name }}</h3>
+                               <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
+                               <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
+                               <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
+                               <a href="{% url 'tournament_dashboard' tournament.id %}" class="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition inline-block">
+                                   View Dashboard
+                               </a>
+                           </div>
+                       {% endfor %}
+                   </div>
+               {% else %}
+                   <p class="text-center text-gray-400">You have not joined any tournaments yet.</p>
+               {% endif %}
            </div>
-       {% endif %}
+       </div>
    </div>
 </div>
 {% endblock %}
