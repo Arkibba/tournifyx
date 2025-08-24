@@ -27,19 +27,12 @@ class Category(models.Model):
 # models.py
 
 class Tournament(models.Model):
-    CATEGORY_CHOICES = [
-        ('valorant', 'Valorant'),
-        ('football', 'Football'),
-        ('cricket', 'Cricket'),
-        ('chess', 'Chess'),
-    ]
-
     name = models.CharField(max_length=100)
-    description = models.TextField()
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='valorant')
-    num_participants = models.PositiveIntegerField()
-    match_type = models.CharField(max_length=10, choices=[('knockout', 'Knockout'), ('league', 'League')], default='knockout')
-    created_by = models.ForeignKey(HostProfile, on_delete=models.CASCADE)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=50)  # or models.ForeignKey(Category, ...)
+    num_participants = models.IntegerField(default=0)
+    match_type = models.CharField(max_length=50)
+    created_by = models.ForeignKey('HostProfile', on_delete=models.CASCADE)
     code = models.CharField(max_length=6, unique=True)
     is_active = models.BooleanField(default=True)  # Add a default value
 
@@ -48,8 +41,8 @@ class Tournament(models.Model):
 
 
 class TournamentParticipant(models.Model):
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    user_profile = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

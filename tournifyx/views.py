@@ -187,16 +187,9 @@ def user_tournaments(request):
     host_profile = HostProfile.objects.filter(user=request.user).first()
 
     hosted_tournaments = Tournament.objects.filter(created_by=host_profile) if host_profile else Tournament.objects.none()
-    joined_tournaments = Tournament.objects.filter(tournamentparticipant__user_profile=user_profile).exclude(created_by=host_profile).distinct()
-
-    if request.method == 'POST':
-        tournament_id = request.POST.get('tournament_id')
-        action = request.POST.get('action')
-
-        if action == 'delete':
-            Tournament.objects.filter(id=tournament_id, created_by=host_profile).delete()
-        elif action == 'update':
-            return redirect('update_tournament', tournament_id=tournament_id)
+    joined_tournaments = Tournament.objects.filter(
+        tournamentparticipant__user_profile=user_profile
+    ).exclude(created_by=host_profile).distinct()
 
     return render(request, 'user_tournaments.html', {
         'hosted_tournaments': hosted_tournaments,
