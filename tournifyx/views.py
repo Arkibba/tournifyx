@@ -213,40 +213,14 @@ def user_tournaments(request):
 
 @login_required(login_url='login')
 def update_tournament(request, tournament_id):
-    tournament = get_object_or_404(Tournament, id=tournament_id, created_by__user=request.user)
-
+    tournament = get_object_or_404(Tournament, id=tournament_id)
     if request.method == 'POST':
         form = TournamentForm(request.POST, instance=tournament)
         if form.is_valid():
-            # Save the tournament details
             form.save()
-
-            # Update participants
-            player_names = form.cleaned_data['players'].splitlines()
-            existing_players = Player.objects.filter(tournament=tournament)
-
-            # Remove players not in the updated list
-            existing_player_names = [player.name for player in existing_players]
-            for player in existing_players:
-                if player.name not in player_names:
-                    player.delete()
-
-            # Add new players
-            for name in player_names:
-                if name.strip() and name not in existing_player_names:
-                    Player.objects.create(
-                        tournament=tournament,
-                        name=name.strip(),
-                        added_by=tournament.created_by
-                    )
-            messages.success(request, f"Tournament '{tournament.name}' updated successfully!")
             return redirect('user_tournaments')
     else:
-        # Prepopulate the players field with existing participant names
-        existing_players = Player.objects.filter(tournament=tournament)
-        player_names = "\n".join([player.name for player in existing_players])
-        form = TournamentForm(instance=tournament, initial={'players': player_names})
-
+        form = TournamentForm(instance=tournament)
     return render(request, 'update_tournament.html', {'form': form, 'tournament': tournament})
 
 
