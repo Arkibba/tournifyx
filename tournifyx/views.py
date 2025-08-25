@@ -154,13 +154,18 @@ def join_tournament(request):
             try:
                 tournament = Tournament.objects.get(code=code)
                 if tournament.is_paid and tournament.price > 0:
-                    # Redirect to payment page (implement payment view)
+                    # Do NOT add participant yet
                     return redirect('payment', tournament_id=tournament.id)
                 else:
+                    # Add participant for free tournaments
+                    user_profile = UserProfile.objects.get(user=request.user)
+                    TournamentParticipant.objects.create(
+                        tournament=tournament,
+                        user_profile=user_profile
+                    )
                     return redirect('tournament_dashboard', tournament_id=tournament.id)
             except Tournament.DoesNotExist:
                 messages.error(request, 'Invalid tournament code!')
-                return render(request, 'join_tournament.html', {'form': form})
     else:
         form = JoinTournamentForm()
     return render(request, 'join_tournament.html', {'form': form})
@@ -252,5 +257,12 @@ def about(request):
 
 def payment(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id)
-    # Implement payment logic here (integrate Stripe, PayPal, etc.)
+    user_profile = UserProfile.objects.get(user=request.user)
+    if request.method == 'POST':
+        # After payment is confirmed
+        TournamentParticipant.objects.create(
+            tournament=tournament,
+            user_profile=user_profile
+        )
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
     return render(request, 'payment.html', {'tournament': tournament})
