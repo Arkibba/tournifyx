@@ -152,11 +152,13 @@ def join_tournament(request):
         if form.is_valid():
             code = form.cleaned_data['code']
             try:
-                # Fetch the tournament using the code
-                tournament = Tournament.objects.get(code=code)  # Ensure this fetches the latest data
-                return redirect('tournament_dashboard', tournament_id=tournament.id)
+                tournament = Tournament.objects.get(code=code)
+                if tournament.is_paid and tournament.price > 0:
+                    # Redirect to payment page (implement payment view)
+                    return redirect('payment', tournament_id=tournament.id)
+                else:
+                    return redirect('tournament_dashboard', tournament_id=tournament.id)
             except Tournament.DoesNotExist:
-                # If the tournament code is invalid
                 messages.error(request, 'Invalid tournament code!')
                 return render(request, 'join_tournament.html', {'form': form})
     else:
@@ -246,3 +248,9 @@ def about(request):
             'Shoshi Khan'
         ]
     })
+
+
+def payment(request, tournament_id):
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    # Implement payment logic here (integrate Stripe, PayPal, etc.)
+    return render(request, 'payment.html', {'tournament': tournament})

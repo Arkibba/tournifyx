@@ -28,6 +28,17 @@
      {{ form.num_participants|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
      {{ form.match_type.label_tag }}
      {{ form.match_type|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+
+     <!-- New fields -->
+     <div>
+         {{ form.is_paid.label_tag }}
+         {{ form.is_paid }}
+     </div>
+     <div>
+         {{ form.price.label_tag }}
+         {{ form.price|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     </div>
+
      {{ form.players.label_tag }}
      {{ form.players|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
 

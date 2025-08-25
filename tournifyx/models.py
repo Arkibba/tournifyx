@@ -29,12 +29,14 @@ class Category(models.Model):
 class Tournament(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    category = models.CharField(max_length=50)  # or models.ForeignKey(Category, ...)
+    category = models.CharField(max_length=50)
     num_participants = models.IntegerField(default=0)
     match_type = models.CharField(max_length=50)
     created_by = models.ForeignKey('HostProfile', on_delete=models.CASCADE)
     code = models.CharField(max_length=6, unique=True)
-    is_active = models.BooleanField(default=True)  # Add a default value
+    is_active = models.BooleanField(default=True)
+    is_paid = models.BooleanField(default=False)  # New field
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)  # New field
 
     def __str__(self):
         return self.name
