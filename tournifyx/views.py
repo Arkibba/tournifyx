@@ -153,12 +153,20 @@ def join_tournament(request):
             code = form.cleaned_data['code']
             try:
                 tournament = Tournament.objects.get(code=code)
+                user_profile = UserProfile.objects.get(user=request.user)
+                # Check if already joined
+                already_joined = TournamentParticipant.objects.filter(
+                    tournament=tournament,
+                    user_profile=user_profile
+                ).exists()
+                if already_joined:
+                    messages.error(request, 'You have already joined this tournament.')
+                    return render(request, 'join_tournament.html', {'form': form})
+
                 if tournament.is_paid and tournament.price > 0:
-                    # Do NOT add participant yet
+                    # Redirect to payment page
                     return redirect('payment', tournament_id=tournament.id)
                 else:
-                    # Add participant for free tournaments
-                    user_profile = UserProfile.objects.get(user=request.user)
                     TournamentParticipant.objects.create(
                         tournament=tournament,
                         user_profile=user_profile
