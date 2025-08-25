@@ -27,16 +27,29 @@ class Category(models.Model):
 # models.py
 
 class Tournament(models.Model):
+    CATEGORY_CHOICES = [
+        ('football', 'Football'),
+        ('valorant', 'Valorant'),
+        ('cricket', 'Cricket'),
+        ('basketball', 'Basketball'),
+        # Add more as needed
+    ]
+    MATCH_TYPE_CHOICES = [
+        ('knockout', 'Knockout'),
+        ('league', 'League'),
+        # Add more as needed
+    ]
+
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    category = models.CharField(max_length=50)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     num_participants = models.IntegerField(default=0)
-    match_type = models.CharField(max_length=50)
+    match_type = models.CharField(max_length=50, choices=MATCH_TYPE_CHOICES)
     created_by = models.ForeignKey('HostProfile', on_delete=models.CASCADE)
     code = models.CharField(max_length=6, unique=True)
     is_active = models.BooleanField(default=True)
-    is_paid = models.BooleanField(default=False)  # New field
-    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)  # New field
+    is_paid = models.BooleanField(default=False)
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
 
     def __str__(self):
         return self.name
