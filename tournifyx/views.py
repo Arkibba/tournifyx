@@ -147,6 +147,8 @@ def host_tournament(request):
 
 
 def join_tournament(request):
+    public_tournaments = Tournament.objects.filter(is_public=True, is_active=True)
+    initial_code = request.GET.get('code', '')
     if request.method == 'POST':
         form = JoinTournamentForm(request.POST)
         if form.is_valid():
@@ -154,14 +156,16 @@ def join_tournament(request):
             try:
                 tournament = Tournament.objects.get(code=code)
                 user_profile = UserProfile.objects.get(user=request.user)
-                # Check if already joined
                 already_joined = TournamentParticipant.objects.filter(
                     tournament=tournament,
                     user_profile=user_profile
                 ).exists()
                 if already_joined:
                     messages.error(request, 'You have already joined this tournament.')
-                    return render(request, 'join_tournament.html', {'form': form})
+                    return render(request, 'join_tournament.html', {
+                        'form': form,
+                        'public_tournaments': public_tournaments
+                    })
 
                 if tournament.is_paid and tournament.price > 0:
                     # Redirect to payment page
@@ -175,8 +179,11 @@ def join_tournament(request):
             except Tournament.DoesNotExist:
                 messages.error(request, 'Invalid tournament code!')
     else:
-        form = JoinTournamentForm()
-    return render(request, 'join_tournament.html', {'form': form})
+        form = JoinTournamentForm(initial={'code': initial_code})
+    return render(request, 'join_tournament.html', {
+        'form': form,
+        'public_tournaments': public_tournaments
+    })
 
 
 def tournament_dashboard(request, tournament_id):
@@ -255,3 +262,9 @@ def payment(request, tournament_id):
         )
         return redirect('tournament_dashboard', tournament_id=tournament.id)
     return render(request, 'payment.html', {'tournament': tournament})
+
+
+@login_required(login_url='login')
+def public_tournaments(request):
+    tournaments = Tournament.objects.filter(is_public=True, is_active=True)
+    return render(request, 'public_tournaments.html', {'tournaments': tournaments})

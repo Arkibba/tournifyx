@@ -34,4 +34,6 @@ urlpatterns = [
    path('update-tournament/<int:tournament_id>/', views.update_tournament, name='update_tournament'),
    path('about/', views.about, name='about'),
    path('payment/<int:tournament_id>/', views.payment, name='payment'),
+   path('public-tournaments/', views.public_tournaments, name='public_tournaments'),
+   path('public-tournaments-link/', views.public_tournaments, name='public_tournaments_link'),
 ]

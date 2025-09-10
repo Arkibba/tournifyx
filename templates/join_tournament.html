@@ -1,32 +1,49 @@
 {% extends 'base.html' %}
-{%load static%}
+{% load widget_tweaks %}
+{% block title %}Join a Tournament{% endblock %}
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-black bg-opacity-50">
-    <div class="w-full max-w-md bg-black bg-opacity-70 backdrop-blur-md p-8 rounded-lg shadow-lg border border-gray-700">
-        <!-- Logo -->
-        <div class="flex justify-center mb-6">
-            <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-24">
+<div class="max-w-4xl mx-auto py-8">
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="px-4 py-2 rounded bg-red-600 text-white mb-2">{{ message }}</div>
+            {% endfor %}
         </div>
-        <!-- Heading -->
-        <h2 class="text-3xl font-bold text-center text-white mb-6">Join a Tournament</h2>
-        <!-- Form -->
-        <form method="post" class="space-y-6">
+    {% endif %}
+
+    <div class="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 rounded-lg shadow-lg p-8 mb-10">
+        <h2 class="text-3xl font-extrabold mb-4 text-white text-center">Join by Code</h2>
+        <form method="post" class="flex flex-col items-center space-y-4">
             {% csrf_token %}
-            <div>
-                <label for="code" class="block text-sm font-medium text-gray-300">Tournament Code</label>
-                <input 
-                    type="text" 
-                    id="code" 
-                    name="code" 
-                    maxlength="20" 
-                    class="w-full p-3 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" 
-                    placeholder="Enter tournament code"
-                    required>
+            <div class="w-full flex flex-col items-center">
+                <label for="id_code" class="text-lg font-semibold text-white mb-2">Enter Tournament Code</label>
+                {{ form.code|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
             </div>
-            <button type="submit" class="w-full py-3 px-6 rounded bg-orange-500 hover:bg-orange-600 transition font-semibold text-white shadow-md">
-                Join
+            <button type="submit" class="w-64 py-3 rounded-lg bg-white text-orange-600 font-bold text-lg shadow hover:bg-orange-100 transition">
+                Join Tournament
             </button>
         </form>
     </div>
+
+    <h2 class="text-2xl font-bold mb-4 text-orange-500">Public Tournaments</h2>
+    {% if public_tournaments %}
+        <div class="space-y-6">
+            {% for tournament in public_tournaments %}
+                <div class="bg-black bg-opacity-60 rounded-lg shadow-md p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-bold mb-2">{{ tournament.name }}</h3>
+                    <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
+                    <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
+                    <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="code" value="{{ tournament.code }}">
+                        <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Join</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-gray-400">No public tournaments available.</p>
+    {% endif %}
 </div>
 {% endblock %}

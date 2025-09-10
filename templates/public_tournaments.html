@@ -1,0 +1,27 @@
+<!-- filepath: c:\Users\RYZEN\PycharmProjects\tournifyx\templates\public_tournaments.html -->
+{% extends 'base.html' %}
+{% block title %}Public Tournaments{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="max-w-4xl w-full bg-black bg-opacity-70 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-orange-500 mb-6 text-center">Public Tournaments</h1>
+        {% if tournaments %}
+            <div class="space-y-6">
+                {% for tournament in tournaments %}
+                    <div class="bg-black bg-opacity-60 rounded-lg shadow-md p-6 hover:shadow-xl transition">
+                        <h3 class="text-xl font-bold mb-2">{{ tournament.name }}</h3>
+                        <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
+                        <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
+                        <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
+                        <a href="{% url 'join_tournament' %}?code={{ tournament.code }}" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition inline-block">
+                            Join Tournament
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-gray-400">No public tournaments available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -38,6 +38,10 @@
          {{ form.price.label_tag }}
          {{ form.price|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
      </div>
+     <div>
+         {{ form.is_public.label_tag }}
+         {{ form.is_public }}
+     </div>
 
      {{ form.players.label_tag }}
      {{ form.players|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
