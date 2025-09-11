@@ -61,7 +61,7 @@
                <div>
                    <label for="id_players" class="block text-sm font-medium text-gray-300">Players</label>
                    <textarea name="players" id="id_players" rows="5"
-                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">{{ form.players.value }}</textarea>
+                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">{{ form.players.value|default_if_none:"" }}</textarea>
                </div>
 
 
@@ -96,6 +96,34 @@
                </button>
            </div>
        </form>
+
+       <!-- Registered Players Section -->
+       <div class="mt-10">
+           <h2 class="text-2xl font-bold mb-4 text-orange-400">Registered Players</h2>
+           {% if players %}
+               <ul class="list-disc pl-6">
+                   {% for player in players %}
+                       <li class="mb-2">{{ player.name }}{% if player.team_name %} ({{ player.team_name }}){% endif %}</li>
+                   {% endfor %}
+               </ul>
+           {% else %}
+               <p class="text-gray-400">No players registered yet.</p>
+           {% endif %}
+       </div>
+
+       <!-- Fixtures Section -->
+       <div class="mt-10">
+           <h2 class="text-2xl font-bold mb-4 text-orange-400">Fixtures</h2>
+           {% if fixtures %}
+               <ul class="list-disc pl-6">
+                   {% for match in fixtures %}
+                       <li class="mb-2">{{ match.0 }} vs {{ match.1 }}</li>
+                   {% endfor %}
+               </ul>
+           {% else %}
+               <p class="text-gray-400">No fixtures generated yet.</p>
+           {% endif %}
+       </div>
    </div>
 </div>
 {% endblock %}

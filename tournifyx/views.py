@@ -4,7 +4,36 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import *
 from django.contrib.auth.decorators import login_required
-from .forms import TournamentForm, JoinTournamentForm, PlayerForm
+from .forms import TournamentForm, JoinTournamentForm, PlayerForm, PublicTournamentJoinForm
+# ...existing code...
+def join_public_tournament(request, tournament_id):
+    tournament = get_object_or_404(Tournament, id=tournament_id, is_public=True)
+    current_players = Player.objects.filter(tournament=tournament).count()
+    capacity = tournament.num_participants
+    if request.method == 'POST':
+        form = PublicTournamentJoinForm(request.POST)
+        if form.is_valid():
+            if current_players >= capacity:
+                messages.error(request, 'This tournament is full. No more players can join.')
+            else:
+                Player.objects.create(
+                    tournament=tournament,
+                    name=form.cleaned_data['name'],
+                    team_name=form.cleaned_data['ign'],
+                    # added_by can be null for public join
+                )
+                # Add TournamentParticipant entry for the user
+                if request.user.is_authenticated:
+                    user_profile = UserProfile.objects.get(user=request.user)
+                    TournamentParticipant.objects.get_or_create(
+                        tournament=tournament,
+                        user_profile=user_profile
+                    )
+                messages.success(request, 'You have successfully joined the tournament!')
+                return redirect('tournament_dashboard', tournament_id=tournament.id)
+    else:
+        form = PublicTournamentJoinForm()
+    return render(request, 'join_tournament.html', {'form': form, 'tournament': tournament})
 import secrets
 import string
 import random
@@ -229,14 +258,39 @@ def user_tournaments(request):
 @login_required(login_url='login')
 def update_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id)
+    players = Player.objects.filter(tournament=tournament)
+    player_names = [p.name for p in players]
+    if tournament.match_type == 'knockout':
+        fixtures = generate_knockout_fixtures(player_names)
+    else:
+        fixtures = generate_league_fixtures(player_names)
     if request.method == 'POST':
         form = TournamentForm(request.POST, instance=tournament)
         if form.is_valid():
             form.save()
+            # Update player names in the database
+            new_player_names = [name.strip() for name in form.cleaned_data.get('players', '').splitlines() if name.strip()]
+            existing_players = list(players)
+            # Update existing player names
+            for i, player in enumerate(existing_players):
+                if i < len(new_player_names):
+                    player.name = new_player_names[i]
+                    player.save()
+                else:
+                    player.delete()  # Remove extra players
+            # Add new players if needed
+            for i in range(len(existing_players), len(new_player_names)):
+                Player.objects.create(tournament=tournament, name=new_player_names[i])
             return redirect('user_tournaments')
     else:
-        form = TournamentForm(instance=tournament)
-    return render(request, 'update_tournament.html', {'form': form, 'tournament': tournament})
+        initial = {'players': '\n'.join([p.name for p in players])}
+        form = TournamentForm(instance=tournament, initial=initial)
+    return render(request, 'update_tournament.html', {
+        'form': form,
+        'tournament': tournament,
+        'players': players,
+        'fixtures': fixtures,
+    })
 
 
 

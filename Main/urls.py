@@ -36,4 +36,5 @@ urlpatterns = [
    path('payment/<int:tournament_id>/', views.payment, name='payment'),
    path('public-tournaments/', views.public_tournaments, name='public_tournaments'),
    path('public-tournaments-link/', views.public_tournaments, name='public_tournaments_link'),
+   path('join-public-tournament/<int:tournament_id>/', views.join_public_tournament, name='join_public_tournament'),
 ]

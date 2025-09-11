@@ -11,39 +11,63 @@
         </div>
     {% endif %}
 
-    <div class="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 rounded-lg shadow-lg p-8 mb-10">
-        <h2 class="text-3xl font-extrabold mb-4 text-white text-center">Join by Code</h2>
-        <form method="post" class="flex flex-col items-center space-y-4">
-            {% csrf_token %}
-            <div class="w-full flex flex-col items-center">
-                <label for="id_code" class="text-lg font-semibold text-white mb-2">Enter Tournament Code</label>
-                {{ form.code|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
-            </div>
-            <button type="submit" class="w-64 py-3 rounded-lg bg-white text-orange-600 font-bold text-lg shadow hover:bg-orange-100 transition">
-                Join Tournament
-            </button>
-        </form>
-    </div>
-
-    <h2 class="text-2xl font-bold mb-4 text-orange-500">Public Tournaments</h2>
-    {% if public_tournaments %}
-        <div class="space-y-6">
-            {% for tournament in public_tournaments %}
-                <div class="bg-black bg-opacity-60 rounded-lg shadow-md p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-bold mb-2">{{ tournament.name }}</h3>
-                    <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
-                    <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
-                    <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
-                    <form method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="code" value="{{ tournament.code }}">
-                        <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Join</button>
-                    </form>
+    {% if tournament %}
+        <div class="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 rounded-lg shadow-lg p-8 mb-10">
+            <h2 class="text-3xl font-extrabold mb-4 text-white text-center">Join Public Tournament: {{ tournament.name }}</h2>
+            <form method="post" class="flex flex-col items-center space-y-4">
+                {% csrf_token %}
+                <div class="w-full flex flex-col items-center">
+                    <label for="id_name" class="text-lg font-semibold text-white mb-2">Name</label>
+                    {{ form.name|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
                 </div>
-            {% endfor %}
+                <div class="w-full flex flex-col items-center">
+                    <label for="id_ign" class="text-lg font-semibold text-white mb-2">In-Game Name</label>
+                    {{ form.ign|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
+                </div>
+                <div class="w-full flex flex-col items-center">
+                    <label for="id_contact_number" class="text-lg font-semibold text-white mb-2">Contact Number</label>
+                    {{ form.contact_number|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
+                </div>
+                <button type="submit" class="w-64 py-3 rounded-lg bg-white text-orange-600 font-bold text-lg shadow hover:bg-orange-100 transition">Join Tournament</button>
+            </form>
         </div>
     {% else %}
-        <p class="text-gray-400">No public tournaments available.</p>
+        <div class="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 rounded-lg shadow-lg p-8 mb-10">
+            <h2 class="text-3xl font-extrabold mb-4 text-white text-center">Join by Code</h2>
+            <form method="post" class="flex flex-col items-center space-y-4">
+                {% csrf_token %}
+                <div class="w-full flex flex-col items-center">
+                    <label for="id_code" class="text-lg font-semibold text-white mb-2">Enter Tournament Code</label>
+                    {{ form.code|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
+                </div>
+                <button type="submit" class="w-64 py-3 rounded-lg bg-white text-orange-600 font-bold text-lg shadow hover:bg-orange-100 transition">Join Tournament</button>
+            </form>
+        </div>
+        <h2 class="text-2xl font-bold mb-6 text-orange-500 text-center">Public Tournaments</h2>
+        {% if public_tournaments %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {% for tournament in public_tournaments %}
+                    <div class="bg-gradient-to-br from-orange-400 via-yellow-300 to-orange-600 rounded-xl shadow-lg p-6 flex flex-col justify-between hover:scale-105 transition-transform duration-200">
+                        <div>
+                            <h3 class="text-2xl font-extrabold mb-2 text-white">{{ tournament.name }}</h3>
+                            <p class="text-gray-100 mb-2">{{ tournament.description }}</p>
+                            <div class="mb-2">
+                                <span class="inline-block bg-black bg-opacity-30 text-orange-200 px-3 py-1 rounded-full text-xs font-semibold mr-2">Category: {{ tournament.get_category_display }}</span>
+                                <span class="inline-block bg-black bg-opacity-30 text-orange-200 px-3 py-1 rounded-full text-xs font-semibold">Match Type: {{ tournament.get_match_type_display }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="inline-block bg-black bg-opacity-30 text-orange-200 px-3 py-1 rounded-full text-xs font-semibold mr-2">Capacity: {{ tournament.num_participants }}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-center">
+                            <a href="{% url 'join_public_tournament' tournament.id %}" class="px-6 py-2 bg-white text-orange-600 font-bold rounded-lg shadow hover:bg-orange-100 transition">Join Public Tournament</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-gray-400">No public tournaments available.</p>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}

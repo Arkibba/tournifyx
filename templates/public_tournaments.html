@@ -13,8 +13,8 @@
                         <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
                         <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
                         <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
-                        <a href="{% url 'join_tournament' %}?code={{ tournament.code }}" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition inline-block">
-                            Join Tournament
+                        <a href="{% url 'join_public_tournament' tournament.id %}" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition inline-block">
+                            Join Public Tournament
                         </a>
                     </div>
                 {% endfor %}
