@@ -80,6 +80,24 @@
                </div>
 
 
+
+               <!-- Registration Deadline Field -->
+               <!-- Public Tournament and Active Tournament Fields -->
+               <div class="flex space-x-6">
+                   <div>
+                       <label for="id_is_public" class="block text-sm font-medium text-gray-300">Public Tournament</label>
+                       {{ form.is_public }}
+                   </div>
+                   <div>
+                       <label for="id_is_active" class="block text-sm font-medium text-gray-300">Active Tournament</label>
+                       {{ form.is_active }}
+                   </div>
+               </div>
+               <!-- Registration Deadline Field -->
+               <div>
+                   <label for="id_registration_deadline" class="block text-sm font-medium text-gray-300">Registration Deadline</label>
+                   {{ form.registration_deadline }}
+               </div>
                <!-- Show tournament code (read-only) -->
                <div>
                    <label class="block text-sm font-medium text-gray-300">Tournament Code</label>
@@ -100,6 +118,8 @@
        <!-- Registered Players Section -->
        <div class="mt-10">
            <h2 class="text-2xl font-bold mb-4 text-orange-400">Registered Players</h2>
+
+
            {% if players %}
                <ul class="list-disc pl-6">
                    {% for player in players %}

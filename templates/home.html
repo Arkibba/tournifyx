@@ -48,12 +48,31 @@
            TournifyX
          </div>
        </div>
-       <div class="hidden md:flex space-x-6">
+       <div class="hidden md:flex space-x-6 items-center">
          <a href="#" class="text-gray-200 hover:text-white hover:underline">Home</a>
          <a href="{% url 'user_tournaments' %}" class="text-gray-200 hover:text-white hover:underline">Tournaments</a>
          <a href="{% url 'about' %}" class="text-gray-200 hover:text-white hover:underline">About</a>
-         <!-- Replace "Get Started" button with "Log Out" -->
-         <a href="{% url 'logout' %}" class="text-gray-200 hover:text-white hover:underline">Log Out</a>
+         {% if user.is_authenticated %}
+           <div class="relative group inline-block ml-6">
+             <button class="px-4 py-2 bg-orange-600 text-white rounded-full font-bold focus:outline-none">
+               {{ user.username }} <i class="fa fa-caret-down ml-1"></i>
+             </button>
+             <div class="absolute right-0 mt-2 w-56 bg-white text-black rounded-lg shadow-lg z-50 hidden group-hover:block">
+               <div class="px-4 py-3 border-b border-gray-200 flex items-center space-x-3">
+                 <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=orange&color=fff&size=48" alt="Avatar" class="w-10 h-10 rounded-full">
+                 <div>
+                   <div class="font-bold text-lg">{{ user.username }}</div>
+                   <div class="text-sm text-gray-600">{{ user.email }}</div>
+                 </div>
+               </div>
+               <a href="#" class="block px-4 py-2 hover:bg-orange-100 text-orange-600 font-semibold">Profile (coming soon)</a>
+               <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-orange-100 text-orange-600 font-semibold rounded-b-lg">Logout</a>
+             </div>
+           </div>
+         {% else %}
+           <a href="{% url 'login' %}" class="hover:underline">Login</a>
+           <a href="{% url 'register' %}" class="hover:underline">Register</a>
+         {% endif %}
        </div>
      </div>
    </div>

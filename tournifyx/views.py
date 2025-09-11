@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
@@ -15,6 +16,8 @@ def join_public_tournament(request, tournament_id):
         if form.is_valid():
             if current_players >= capacity:
                 messages.error(request, 'This tournament is full. No more players can join.')
+            elif tournament.is_paid and tournament.price > 0:
+                messages.error(request, 'Payment gateway is currently disabled. You cannot join paid tournaments.')
             else:
                 Player.objects.create(
                     tournament=tournament,
@@ -128,12 +131,13 @@ def host_tournament(request):
         if form.is_valid():
             tournament = form.save(commit=False)
             tournament.created_by = host_profile
-
+            # Explicitly set is_public and is_active from form.cleaned_data
+            tournament.is_public = form.cleaned_data.get('is_public', False)
+            tournament.is_active = form.cleaned_data.get('is_active', True)
             # Generate a unique tournament code
             code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
             while Tournament.objects.filter(code=code).exists():
                 code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
             tournament.code = code
             tournament.save()
 
@@ -197,8 +201,7 @@ def join_tournament(request):
                     })
 
                 if tournament.is_paid and tournament.price > 0:
-                    # Redirect to payment page
-                    return redirect('payment', tournament_id=tournament.id)
+                    messages.error(request, 'Payment gateway is currently disabled. You cannot join paid tournaments.')
                 else:
                     TournamentParticipant.objects.create(
                         tournament=tournament,
@@ -267,7 +270,11 @@ def update_tournament(request, tournament_id):
     if request.method == 'POST':
         form = TournamentForm(request.POST, instance=tournament)
         if form.is_valid():
-            form.save()
+            updated_tournament = form.save(commit=False)
+            # Always set is_public and is_active from the form value if present
+            updated_tournament.is_public = form.cleaned_data.get('is_public', False)
+            updated_tournament.is_active = form.cleaned_data.get('is_active', tournament.is_active)
+            updated_tournament.save()
             # Update player names in the database
             new_player_names = [name.strip() for name in form.cleaned_data.get('players', '').splitlines() if name.strip()]
             existing_players = list(players)
@@ -284,6 +291,9 @@ def update_tournament(request, tournament_id):
             return redirect('user_tournaments')
     else:
         initial = {'players': '\n'.join([p.name for p in players])}
+        # Set is_public checked by default if tournament is public
+        if tournament.is_public:
+            initial['is_public'] = True
         form = TournamentForm(instance=tournament, initial=initial)
     return render(request, 'update_tournament.html', {
         'form': form,
@@ -305,17 +315,6 @@ def about(request):
     })
 
 
-def payment(request, tournament_id):
-    tournament = get_object_or_404(Tournament, id=tournament_id)
-    user_profile = UserProfile.objects.get(user=request.user)
-    if request.method == 'POST':
-        # After payment is confirmed
-        TournamentParticipant.objects.create(
-            tournament=tournament,
-            user_profile=user_profile
-        )
-        return redirect('tournament_dashboard', tournament_id=tournament.id)
-    return render(request, 'payment.html', {'tournament': tournament})
 
 
 @login_required(login_url='login')
