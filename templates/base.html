@@ -38,6 +38,8 @@
                 <a href="{% url 'user_tournaments' %}" class="hover:underline">Tournaments</a>
                 <a href="{% url 'about' %}" class="hover:underline">About</a>
                 <a href="{% url 'public_tournaments' %}" class="hover:underline">Public Tournaments</a>
+                 <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-orange-100 text-orange-600 font-semibold rounded-b-lg">Logout</a>
+                        </div>
                 {% if user.is_authenticated %}
                     <div class="relative group inline-block ml-6">
                         <button class="px-4 py-2 bg-orange-600 text-white rounded-full font-bold focus:outline-none">
@@ -49,11 +51,11 @@
                                 <div>
                                     <div class="font-bold text-lg">{{ user.username }}</div>
                                     <div class="text-sm text-gray-600">{{ user.email }}</div>
+                                    
                                 </div>
                             </div>
                             <a href="#" class="block px-4 py-2 hover:bg-orange-100 text-orange-600 font-semibold">Profile (coming soon)</a>
-                            <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-orange-100 text-orange-600 font-semibold rounded-b-lg">Logout</a>
-                        </div>
+                           
                     </div>
                 {% else %}
                     <a href="{% url 'login' %}" class="hover:underline">Login</a>

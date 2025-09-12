@@ -13,8 +13,7 @@ from .utils import generate_knockout_fixtures, generate_league_fixtures
 import itertools
 from django.http import HttpResponseForbidden
 from django.core.cache import cache
-
-# ...existing code...
+@login_required
 def join_public_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id, is_public=True)
     current_players = Player.objects.filter(tournament=tournament).count()
@@ -180,6 +179,7 @@ def host_tournament(request):
     })
 
 
+@login_required
 def join_tournament(request):
     public_tournaments = Tournament.objects.filter(is_public=True, is_active=True)
     initial_code = request.GET.get('code', '')
@@ -218,7 +218,7 @@ def join_tournament(request):
         'public_tournaments': public_tournaments
     })
 
-
+@login_required
 def tournament_dashboard(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id)
     participants = Player.objects.filter(tournament=tournament)
