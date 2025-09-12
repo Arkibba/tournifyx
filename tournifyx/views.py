@@ -6,6 +6,14 @@ from django.contrib import messages
 from .models import *
 from django.contrib.auth.decorators import login_required
 from .forms import TournamentForm, JoinTournamentForm, PlayerForm, PublicTournamentJoinForm
+import secrets
+import string
+import random
+from .utils import generate_knockout_fixtures, generate_league_fixtures
+import itertools
+from django.http import HttpResponseForbidden
+from django.core.cache import cache
+
 # ...existing code...
 def join_public_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id, is_public=True)
@@ -37,13 +45,6 @@ def join_public_tournament(request, tournament_id):
     else:
         form = PublicTournamentJoinForm()
     return render(request, 'join_tournament.html', {'form': form, 'tournament': tournament})
-import secrets
-import string
-import random
-from .utils import generate_knockout_fixtures, generate_league_fixtures
-import itertools
-from django.http import HttpResponseForbidden
-from django.core.cache import cache
 
 def generate_knockout_fixtures(players):
     random.shuffle(players)
@@ -311,6 +312,7 @@ def about(request):
             'Md. Zubaer Islam',
             'MD. Arkive',
             'Shoshi Khan'
+            
         ]
     })
 
