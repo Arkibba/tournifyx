@@ -33,10 +33,6 @@ urlpatterns = [
    path('user-tournaments/', views.user_tournaments, name='user_tournaments'),
    path('update-tournament/<int:tournament_id>/', views.update_tournament, name='update_tournament'),
    path('about/', views.about, name='about'),
-   # path('payment/<int:tournament_id>/', views.payment, name='payment'),
-   path('public-tournaments/', views.public_tournaments, name='public_tournaments'),
-   path('public-tournaments-link/', views.public_tournaments, name='public_tournaments_link'),
-   path('join-public-tournament/<int:tournament_id>/', views.join_public_tournament, name='join_public_tournament'),
-   # path('payment/success/<int:tournament_id>/', views.payment_success, name='payment_success'),
-   # path('payment/cancel/<int:tournament_id>/', views.payment_cancel, name='payment_cancel'),
+   path('payment/<int:tournament_id>/', views.payment, name='payment'),
+   
 ]
