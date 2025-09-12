@@ -8,12 +8,12 @@
         {% if tournaments %}
             <div class="space-y-6">
                 {% for tournament in tournaments %}
-                    <div class="bg-black bg-opacity-60 rounded-lg shadow-md p-6 hover:shadow-xl transition">
-                        <h3 class="text-xl font-bold mb-2">{{ tournament.name }}</h3>
+                    <div class="bg-black bg-opacity-70 rounded-lg shadow-md p-6 hover:shadow-xl transition">
+                        <h3 class="text-xl font-bold mb-2 text-white">{{ tournament.name }}</h3>
                         <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
-                        <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
-                        <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
-                        <a href="{% url 'join_public_tournament' tournament.id %}" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition inline-block">
+                        <p class="text-sm text-orange-200"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
+                        <p class="text-sm text-orange-200"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
+                        <a href="{% url 'join_public_tournament' tournament.id %}" class="mt-4 px-4 py-2 bg-white text-orange-600 font-bold rounded-lg shadow hover:bg-orange-100 transition inline-block">
                             Join Public Tournament
                         </a>
                     </div>
