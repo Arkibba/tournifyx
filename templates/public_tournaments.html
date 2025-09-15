@@ -3,7 +3,7 @@
 {% block title %}Public Tournaments{% endblock %}
 {% block content %}
 <div class="min-h-screen flex items-center justify-center">
-    <div class="max-w-4xl w-full bg-black bg-opacity-70 rounded-lg shadow-lg p-8">
+    <div id="public-tournaments-panel" class="max-w-4xl w-full bg-black bg-opacity-70 rounded-lg shadow-lg p-8 fade-in">
         <h1 class="text-3xl font-bold text-orange-500 mb-6 text-center">Public Tournaments</h1>
         {% if tournaments %}
             <div class="space-y-6">
@@ -24,4 +24,23 @@
         {% endif %}
     </div>
 </div>
+<script>
+    // Inject fade-in CSS dynamically
+    const style = document.createElement('style');
+    style.textContent = `
+        .fade-in {
+            opacity: 0;
+            transition: opacity 0.7s ease;
+        }
+        .fade-in.show {
+            opacity: 1;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Fade in after 2.8 seconds
+    setTimeout(function() {
+        document.getElementById('public-tournaments-panel').classList.add('show');
+    }, 2800);
+</script>
 {% endblock %}
