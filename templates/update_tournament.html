@@ -16,7 +16,7 @@
 
 
        <h1 class="text-3xl font-bold mb-4 text-orange-500 text-center">Update Tournament</h1>
-       <form method="post" class="space-y-6">
+    <form method="post" class="space-y-6">
            {% csrf_token %}
            <div class="space-y-4">
                <!-- Name Field -->
@@ -129,6 +129,11 @@
            {% else %}
                <p class="text-gray-400">No players registered yet.</p>
            {% endif %}
+       </div>
+
+       <!-- Go to Dashboard Button -->
+       <div class="mt-8 flex justify-center">
+           <a href="{% url 'tournament_dashboard' tournament.id %}" class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg shadow">Go to Dashboard</a>
        </div>
 
        <!-- Fixtures Section -->

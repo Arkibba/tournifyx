@@ -13,6 +13,9 @@ from .utils import generate_knockout_fixtures, generate_league_fixtures
 import itertools
 from django.http import HttpResponseForbidden
 from django.core.cache import cache
+
+from .models import Match, Player, PointTable, Tournament
+from django.views.decorators.http import require_POST
 @login_required
 def join_public_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id, is_public=True)
@@ -59,6 +62,84 @@ def generate_league_fixtures(players):
 # Views
 def home(request):
     return render(request, 'home.html')
+
+
+# View to update match result and update point table
+
+@login_required
+@require_POST
+def update_match_result(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+    winner_id = request.POST.get('winner_id')
+    draw = request.POST.get('draw', False)
+
+    # Fetch previous result from DB (not from possibly already updated match object)
+    match_db = Match.objects.get(id=match_id)
+    prev = None
+    if match_db.winner is None and not match_db.is_draw:
+        prev = None
+    elif match_db.is_draw:
+        prev = 'draw'
+    elif match_db.winner == match_db.player1:
+        prev = 'player1'
+    elif match_db.winner == match_db.player2:
+        prev = 'player2'
+
+    if not winner_id and not draw:
+        messages.error(request, 'Please select a winner or mark as draw.')
+        return redirect('tournament_dashboard', tournament_id=match.tournament.id)
+
+    # Update match result
+    if draw:
+        match.winner = None
+        match.is_draw = True
+    else:
+        match.winner = Player.objects.get(id=winner_id)
+        match.is_draw = False
+    match.save()
+
+    # Update point table for both players
+    update_points_for_match(match, prev)
+    messages.success(request, 'Match result updated and point table recalculated.')
+    return redirect('tournament_dashboard', tournament_id=match.tournament.id)
+
+
+# Helper function to update points for a match
+def update_points_for_match(match, prev_result=None):
+    # Recalculate the entire point table for the tournament
+    tournament = match.tournament
+    players = Player.objects.filter(tournament=tournament)
+    # Reset all point table entries
+    for pt in PointTable.objects.filter(tournament=tournament):
+        pt.matches_played = 0
+        pt.wins = 0
+        pt.draws = 0
+        pt.losses = 0
+        pt.points = 0
+        pt.save()
+    # Go through all matches and update stats
+    for m in Match.objects.filter(tournament=tournament):
+        # Only count as played if result is set (winner or draw)
+        if m.winner is not None or m.is_draw:
+            pt1, _ = PointTable.objects.get_or_create(tournament=tournament, player=m.player1)
+            pt2, _ = PointTable.objects.get_or_create(tournament=tournament, player=m.player2)
+            pt1.matches_played += 1
+            pt2.matches_played += 1
+            if m.is_draw:
+                pt1.draws += 1
+                pt2.draws += 1
+                pt1.points += 1
+                pt2.points += 1
+            elif m.winner == m.player1:
+                pt1.wins += 1
+                pt2.losses += 1
+                pt1.points += 3
+            elif m.winner == m.player2:
+                pt2.wins += 1
+                pt1.losses += 1
+                pt2.points += 3
+            pt1.save()
+            pt2.save()
 
 def register(request):
     if request.method == 'POST':
@@ -148,13 +229,33 @@ def host_tournament(request):
                 tournament.delete()  # Rollback tournament creation
                 return redirect('host_tournament')
 
+
+            player_objs = []
             for name in player_names:
                 if name.strip():  # Ignore empty lines
-                    Player.objects.create(
+                    player_objs.append(Player.objects.create(
                         tournament=tournament,
                         name=name.strip(),
                         added_by=host_profile
-                    )
+                    ))
+
+            # Create Match objects for all fixtures (league: all pairs, knockout: shuffled pairs)
+            if tournament.match_type == 'knockout':
+                fixture_pairs = generate_knockout_fixtures([p.name for p in player_objs])
+            else:
+                fixture_pairs = generate_league_fixtures([p.name for p in player_objs])
+
+            # Map player names to Player objects
+            name_to_player = {p.name: p for p in player_objs}
+            from tournifyx.models import Match
+            for p1, p2 in fixture_pairs:
+                Match.objects.create(
+                    tournament=tournament,
+                    player1=name_to_player[p1],
+                    player2=name_to_player[p2],
+                    stage='GROUP',  # Default to group/league stage
+                    scheduled_time=None
+                )
 
             tournament_code = tournament.code
             messages.success(
@@ -222,17 +323,22 @@ def join_tournament(request):
 def tournament_dashboard(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id)
     participants = Player.objects.filter(tournament=tournament)
-    participant_names = [p.name for p in participants]
-
-    if tournament.match_type == 'knockout':
-        fixtures = generate_knockout_fixtures(participant_names)
-    else:  # League
-        fixtures = generate_league_fixtures(participant_names)
-
+    matches = list(Match.objects.filter(tournament=tournament).select_related('player1', 'player2', 'winner'))
+    for match in matches:
+        match.has_result = bool(match.winner) or match.is_draw
+    # Determine if the current user is the host
+    is_host = False
+    if request.user.is_authenticated:
+        try:
+            host_profile = HostProfile.objects.get(user=request.user)
+            is_host = (tournament.created_by == host_profile)
+        except HostProfile.DoesNotExist:
+            is_host = False
     return render(request, 'tournament_dashboard.html', {
         'tournament': tournament,
         'participants': participants,
-        'fixtures': fixtures,
+        'matches': matches,
+        'is_host': is_host,
     })
 
 
@@ -240,7 +346,14 @@ def tournament_dashboard(request, tournament_id):
 def user_tournaments(request):
     user_profile = UserProfile.objects.get(user=request.user)
     host_profile = HostProfile.objects.filter(user=request.user).first()
-    hosted_tournaments = Tournament.objects.filter(created_by=host_profile) if host_profile else Tournament.objects.none()
+    # Only show one tournament per unique name (latest by id)
+    hosted_tournaments = []
+    if host_profile:
+        seen_names = set()
+        for t in Tournament.objects.filter(created_by=host_profile).order_by('-id'):
+            if t.name not in seen_names:
+                hosted_tournaments.append(t)
+                seen_names.add(t.name)
     joined_tournaments = Tournament.objects.filter(
         tournamentparticipant__user_profile=user_profile
     ).exclude(created_by=host_profile).distinct()

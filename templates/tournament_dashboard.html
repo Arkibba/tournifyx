@@ -51,31 +51,112 @@
    <div id="fixtures-panel" class="hidden">
        <h2 class="text-2xl font-semibold text-gray-200 mb-4">Fixtures</h2>
        <ul class="bg-gray-900 bg-opacity-80 shadow-md rounded-lg divide-y divide-gray-700">
-           {% for match in fixtures %}
+           {% for match in matches %}
                <li class="p-4 hover:bg-gray-700">
-                   <span class="font-medium">{{ match.0 }}</span>
-                   <span class="text-gray-400">vs</span>
-                   <span class="font-medium">{{ match.1 }}</span>
+                   {% if is_host %}
+                       <form method="post" action="{% url 'update_match_result' match.id %}" class="flex items-center space-x-4">
+                           {% csrf_token %}
+                           <span class="font-medium">{{ match.player1.name }}</span>
+                           <span class="text-gray-400">vs</span>
+                           <span class="font-medium">{{ match.player2.name }}</span>
+                           <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select">
+                               <option value="">Select Winner</option>
+                               <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>{{ match.player1.name }}</option>
+                               <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>{{ match.player2.name }}</option>
+                           </select>
+                           <label class="text-gray-300 ml-2">
+                               <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
+                           </label>
+                           <button type="submit" class="ml-2 px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded">Update</button>
+                       </form>
+                   {% else %}
+                       <span class="font-medium">{{ match.player1.name }}</span>
+                       <span class="text-gray-400">vs</span>
+                       <span class="font-medium">{{ match.player2.name }}</span>
+                   {% endif %}
+                   {% if match.winner %}
+                       <span class="ml-4 text-green-400">Winner: {{ match.winner.name }}</span>
+                   {% elif match.has_result %}
+                       <span class="ml-4 text-yellow-400">Match is Draw</span>
+                   {% endif %}
                </li>
            {% empty %}
                <li class="p-4 text-gray-400">No fixtures available yet.</li>
            {% endfor %}
        </ul>
    </div>
+
+    <!-- Point Table Section -->
+    <div class="mt-10">
+        <h2 class="text-2xl font-semibold text-gray-200 mb-4">Point Table</h2>
+        <table class="min-w-full bg-gray-900 bg-opacity-80 rounded-lg overflow-hidden">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Player</th>
+                    <th class="px-4 py-2">Played</th>
+                    <th class="px-4 py-2">Wins</th>
+                    <th class="px-4 py-2">Draws</th>
+                    <th class="px-4 py-2">Losses</th>
+                    <th class="px-4 py-2">Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in tournament.pointtable_set.all %}
+                <tr>
+                    <td class="px-4 py-2">{{ entry.player.name }}</td>
+                    <td class="px-4 py-2">{{ entry.matches_played }}</td>
+                    <td class="px-4 py-2">{{ entry.wins }}</td>
+                    <td class="px-4 py-2">{{ entry.draws }}</td>
+                    <td class="px-4 py-2">{{ entry.losses }}</td>
+                    <td class="px-4 py-2 font-bold">{{ entry.points }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="px-4 py-2 text-gray-400">No point table data yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 
 <script>
-   // JavaScript to toggle the visibility of the fixtures panel
-   document.getElementById('toggle-fixtures-btn').addEventListener('click', function () {
-       const fixturesPanel = document.getElementById('fixtures-panel');
-       if (fixturesPanel.classList.contains('hidden')) {
-           fixturesPanel.classList.remove('hidden');
-           this.textContent = 'Hide Fixtures';
-       } else {
-           fixturesPanel.classList.add('hidden');
-           this.textContent = 'Show Fixtures';
-       }
-   });
+// Toggle fixtures panel
+document.getElementById('toggle-fixtures-btn').addEventListener('click', function () {
+    const fixturesPanel = document.getElementById('fixtures-panel');
+    if (fixturesPanel.classList.contains('hidden')) {
+        fixturesPanel.classList.remove('hidden');
+        this.textContent = 'Hide Fixtures';
+    } else {
+        fixturesPanel.classList.add('hidden');
+        this.textContent = 'Show Fixtures';
+    }
+});
+
+// Winner/Draw mutual exclusion logic
+document.querySelectorAll('form').forEach(function(form) {
+    const winnerSelect = form.querySelector('.winner-select');
+    const drawCheckbox = form.querySelector('.draw-checkbox');
+    if (winnerSelect && drawCheckbox) {
+        // Initial state: if a winner is selected, disable draw; if draw is checked, disable winner
+        function updateState() {
+            if (drawCheckbox.checked) {
+                winnerSelect.disabled = true;
+            } else {
+                winnerSelect.disabled = false;
+            }
+            if (winnerSelect.value) {
+                drawCheckbox.disabled = true;
+            } else {
+                drawCheckbox.disabled = false;
+            }
+        }
+        // Set initial state
+        drawCheckbox.checked = false;
+        updateState();
+        // Event listeners
+        drawCheckbox.addEventListener('change', updateState);
+        winnerSelect.addEventListener('change', updateState);
+    }
+});
 </script>
 {% endblock %}

@@ -79,6 +79,23 @@ class Player(models.Model):
         return f"{self.name} - {self.tournament.name}"
 
 
+# PointTable model to track points for each player/team in a tournament
+class PointTable(models.Model):
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    matches_played = models.PositiveIntegerField(default=0)
+    wins = models.PositiveIntegerField(default=0)
+    losses = models.PositiveIntegerField(default=0)
+    draws = models.PositiveIntegerField(default=0)
+    points = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('tournament', 'player')
+
+    def __str__(self):
+        return f"{self.player.name} - {self.points} pts"
+
+
 class Match(models.Model):
     STAGE_CHOICES = [
         ('GROUP', 'Group Stage'),
@@ -91,8 +108,9 @@ class Match(models.Model):
     player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_player1')
     player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_player2')
     stage = models.CharField(max_length=10, choices=STAGE_CHOICES)
-    scheduled_time = models.DateTimeField()
+    scheduled_time = models.DateTimeField(null=True, blank=True)
     winner = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, related_name='match_winner')
+    is_draw = models.BooleanField(default=False)
 
     def _str_(self):
         return f"{self.player1.name} vs {self.player2.name} ({self.stage})"
