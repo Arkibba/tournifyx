@@ -326,6 +326,10 @@ def tournament_dashboard(request, tournament_id):
     matches = list(Match.objects.filter(tournament=tournament).select_related('player1', 'player2', 'winner'))
     for match in matches:
         match.has_result = bool(match.winner) or match.is_draw
+    
+    # Get point table sorted in descending order by points
+    point_table = PointTable.objects.filter(tournament=tournament).select_related('player').order_by('-points')
+    
     # Determine if the current user is the host
     is_host = False
     if request.user.is_authenticated:
@@ -338,6 +342,7 @@ def tournament_dashboard(request, tournament_id):
         'tournament': tournament,
         'participants': participants,
         'matches': matches,
+        'point_table': point_table,
         'is_host': is_host,
     })
 
