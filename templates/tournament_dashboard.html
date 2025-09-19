@@ -101,7 +101,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for entry in tournament.pointtable_set.all %}
+                {% for entry in point_table %}
                 <tr>
                     <td class="px-4 py-2">{{ entry.player.name }}</td>
                     <td class="px-4 py-2">{{ entry.matches_played }}</td>
