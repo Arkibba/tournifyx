@@ -192,7 +192,7 @@ def login(request):
 def logout(request):
     auth_logout(request)
     messages.success(request, 'You have been logged out!')
-    return redirect('login')
+    return redirect('home')
 
 
 @login_required(login_url='login')
