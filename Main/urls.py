@@ -22,7 +22,8 @@ from tournifyx.views import *
 
 
 urlpatterns = [
-   path('', login, name='login'),
+   path('', home, name='home'),
+   path('login/', login, name='login'),
    path('home', home, name='home'),
    path('register/', register, name='register'),
    path('logout/', logout, name='logout'),

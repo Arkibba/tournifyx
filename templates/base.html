@@ -24,47 +24,33 @@
         <div class="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm"></div>
     </div>
 
-    <header>
-        <nav class="bg-black p-4 flex justify-between items-center">
-            <!-- Logo + Brand -->
-            <a href="{% url 'home' %}" class="flex items-center space-x-2 text-white hover:opacity-80">
-                <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-8 h-8">
-                <span class="text-xl font-bold">TournifyX</span>
-            </a>
+<header>
+  <nav class="bg-black p-4 flex justify-between items-center">
+    <!-- Logo & Brand -->
+    <a href="{% url 'home' %}" class="flex items-center space-x-2 text-white hover:opacity-80">
+      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-8 h-8">
+      <span class="text-xl font-bold">TournifyX</span>
+    </a>
 
-            
-            <!-- Navigation Links -->
-            <div class="space-x-4 flex items-center">
-                <a href="{% url 'home' %}" class="hover:underline">Home</a>
-                <a href="{% url 'user_tournaments' %}" class="hover:underline">Tournaments</a>
-                <a href="{% url 'about' %}" class="hover:underline">About</a>
-                <a href="{% url 'public_tournaments' %}" class="hover:underline">Public Tournaments</a>
-                 <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-orange-100 text-orange-600 font-semibold rounded-b-lg">Logout</a>
-                        </div>
-                {% if user.is_authenticated %}
-                    <div class="relative group inline-block ml-6">
-                        <button class="px-4 py-2 bg-orange-600 text-white rounded-full font-bold focus:outline-none">
-                            {{ user.username }} <i class="fa fa-caret-down ml-1"></i>
-                        </button>
-                        <div class="absolute right-0 mt-2 w-56 bg-white text-black rounded-lg shadow-lg z-50 hidden group-hover:block">
-                            <div class="px-4 py-3 border-b border-gray-200 flex items-center space-x-3">
-                                <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=orange&color=fff&size=48" alt="Avatar" class="w-10 h-10 rounded-full">
-                                <div>
-                                    <div class="font-bold text-lg">{{ user.username }}</div>
-                                    <div class="text-sm text-gray-600">{{ user.email }}</div>
-                                    
-                                </div>
-                            </div>
-                            <a href="#" class="block px-4 py-2 hover:bg-orange-100 text-orange-600 font-semibold">Profile (coming soon)</a>
-                           
-                    </div>
-                {% else %}
-                    <a href="{% url 'login' %}" class="hover:underline">Login</a>
-                    <a href="{% url 'register' %}" class="hover:underline">Register</a>
-                {% endif %}
-            </div>
-        </nav>
-    </header>
+    <!-- Navigation Links -->
+    <div class="space-x-4 flex items-center">
+      <a href="{% url 'home' %}" class="hover:underline">Home</a>
+      <a href="{% url 'user_tournaments' %}" class="hover:underline">Tournaments</a>
+      <a href="{% url 'about' %}" class="hover:underline">About</a>
+
+      {% if request.resolver_match.url_name in 'user_tournaments public_tournaments host_tournament join_tournament' %}
+        <a href="{% url 'public_tournaments' %}" class="hover:underline">Public Tournaments</a>
+      {% endif %}
+
+      {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="block px-4 py-2 hover:underline">Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="hover:underline">Login</a>
+        <a href="{% url 'register' %}" class="hover:underline ml-4">Register</a>
+      {% endif %}
+    </div>
+  </nav>
+</header>
 
     <main class="flex-grow">
         {% block content %}
