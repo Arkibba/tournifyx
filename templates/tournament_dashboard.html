@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
-
+{% load static %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto mt-10 p-8 bg-gray-800 bg-opacity-90 shadow-lg rounded-lg text-gray-100">
+<!-- Full Screen Background Image -->
+<div 
+  class="fixed inset-0 w-full h-full z-0"
+  style="background-image: url('{% static 'images/background.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
+></div>
+
+<div class="max-w-6xl mx-auto mt-10 p-8 bg-gray-800 bg-opacity-90 shadow-lg rounded-lg text-gray-100 relative z-10">
    <!-- Logo and Tournament Header -->
    <div class="text-center mb-8">
        <img src="/static/images/logo.png" alt="Tournament Logo" class="mx-auto w-32 h-32 mb-4">
