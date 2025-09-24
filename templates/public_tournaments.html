@@ -45,9 +45,7 @@
     `;
     document.head.appendChild(style);
 
-    // Fade in after 2.8 seconds
-    setTimeout(function() {
-        document.getElementById('public-tournaments-panel').classList.add('show');
-    }, 2800);
+    // Fade in immediately
+    document.getElementById('public-tournaments-panel').classList.add('show');
 </script>
 {% endblock %}
