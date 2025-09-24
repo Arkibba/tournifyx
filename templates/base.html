@@ -16,34 +16,131 @@
             padding: 0;
             background: transparent;
         }
+
+        /* Navigation Container */
+        .nav-container {
+            background: rgba(236, 109, 16, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 4px 16px;
+        }
+
+        /* Animated Icon Button Styles */
+        .nav-btn {
+            position: relative;
+            padding: 8px;
+            border-radius: 50%;
+            background: transparent;
+            color: white;
+            text-decoration: none;
+            transition: all 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 140, 0, 0.8);
+            cursor: pointer;
+        }
+
+        .nav-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+            transition: all 0.3s ease;
+        }
+
+        /* Tooltip Styles */
+        .nav-tooltip {
+            position: absolute;
+            bottom: calc(100% + 16px);
+            left: 50%;
+            transform: translateX(-50%) scale(0.5);
+            background: black;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        .nav-btn:hover .nav-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
     </style>
 </head>
 <body style="background: transparent; margin: 0; padding: 0;">
 
 <!-- Navigation Bar -->
 <header>
-  <nav class="absolute top-0 left-0 w-full z-50 bg-black p-4 flex justify-between items-center">
-    <!-- Logo & Brand -->
-    <a href="{% url 'home' %}" class="flex items-center space-x-2 text-white hover:opacity-80">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-8 h-8">
-      <span class="text-xl font-bold">TournifyX</span>
-    </a>
+  <nav class="absolute top-0 left-0 w-full z-50 bg-white bg-opacity-20 backdrop-blur-sm p-4 flex justify-center items-center relative">
+    <!-- Left Side - Logo & Brand -->
+    <div class="absolute left-8">
+      <a href="{% url 'home' %}" class="flex items-center space-x-3 text-black hover:opacity-100">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-10 h-10">
+        <span class="text-2xl font-bold">TournifyX</span>
+      </a>
+    </div>
 
-    <!-- Navigation Links -->
-    <div class="space-x-4 flex items-center text-white">
-      <a href="{% url 'home' %}" class="hover:underline">Home</a>
-      <a href="{% url 'user_tournaments' %}" class="hover:underline">Tournaments</a>
-      <a href="{% url 'about' %}" class="hover:underline">About</a>
+    <!-- Centered Navigation Links -->
+    <div class="nav-container flex justify-around gap-5 items-center">
+      <a href="{% url 'home' %}" class="nav-btn">
+        <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M27.9167 30H20.4167C19.2658 30 18.3333 29.1392 18.3333 28.0769V21.1538C18.3333 20.3038 17.5875 19.6154 16.6667 19.6154H13.3333C12.4125 19.6154 11.6667 20.3038 11.6667 21.1538V28.0769C11.6667 29.1392 10.7342 30 9.58333 30H2.08333C0.9325 30 0 29.1392 0 28.0769V13.3946C0 11.6262 0.878334 9.95539 2.3825 8.86154L14.2258 0.246923C14.68 -0.0823077 15.32 -0.0823077 15.7733 0.246923L27.6183 8.86154C29.1225 9.95539 30 11.6254 30 13.3931V28.0769C30 29.1392 29.0675 30 27.9167 30Z" fill="white"/>
+        </svg>
+        <div class="nav-tooltip">Home</div>
+      </a>
+
+      <a href="{% url 'user_tournaments' %}" class="nav-btn">
+        <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 0L18.09 11.26L30 11.26L21.18 18.16L24.27 29.42L15 22.52L5.73 29.42L8.82 18.16L0 11.26L11.91 11.26L15 0Z" fill="white"/>
+        </svg>
+        <div class="nav-tooltip">Tournaments</div>
+      </a>
+
+      <a href="{% url 'about' %}" class="nav-btn">
+        <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15.0013 0C10.482 0 6.81914 3.50348 6.81914 7.82609V9.13044C6.81914 13.453 10.482 16.9565 15.0013 16.9565C19.5206 16.9565 23.1835 13.453 23.1835 9.13044V7.82609C23.1835 3.50348 19.5206 0 15.0013 0ZM14.9987 20.8696C9.53569 20.8696 2.52628 23.6959 0.509366 26.2041C-0.737054 27.755 0.44947 30 2.49366 30H27.5063C29.5505 30 30.7371 27.755 29.4906 26.2041C27.4737 23.6972 20.4616 20.8696 14.9987 20.8696Z" fill="white"/>
+        </svg>
+        <div class="nav-tooltip">About</div>
+      </a>
 
       {% if request.resolver_match.url_name in 'user_tournaments public_tournaments host_tournament join_tournament' %}
-        <a href="{% url 'public_tournaments' %}" class="hover:underline">Public Tournaments</a>
+        <a href="{% url 'public_tournaments' %}" class="nav-btn">
+          <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 0C6.716 0 0 6.716 0 15C0 23.284 6.716 30 15 30C23.284 30 30 23.284 30 15C30 6.716 23.284 0 15 0ZM22.5 16.875H16.875V22.5C16.875 23.533 16.033 24.375 15 24.375C13.967 24.375 13.125 23.533 13.125 22.5V16.875H7.5C6.467 16.875 5.625 16.033 5.625 15C5.625 13.967 6.467 13.125 7.5 13.125H13.125V7.5C13.125 6.467 13.967 5.625 15 5.625C16.033 5.625 16.875 6.467 16.875 7.5V13.125H22.5C23.533 13.125 24.375 13.967 24.375 15C24.375 16.033 23.533 16.875 22.5 16.875Z" fill="white"/>
+          </svg>
+          <div class="nav-tooltip">Public Tournaments</div>
+        </a>
       {% endif %}
 
       {% if user.is_authenticated %}
-        <a href="{% url 'logout' %}" class="hover:underline">Logout</a>
+        <a href="{% url 'logout' %}" class="nav-btn">
+          <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.5 13.125H15V11.25C15 5.037 9.963 0 3.75 0H3.75C1.681 0 0 1.681 0 3.75V26.25C0 28.319 1.681 30 3.75 30H3.75C9.963 30 15 24.963 15 18.75V16.875H22.5C23.533 16.875 24.375 16.033 24.375 15C24.375 13.967 23.533 13.125 22.5 13.125ZM30 15L22.5 7.5V22.5L30 15Z" fill="white"/>
+          </svg>
+          <div class="nav-tooltip">Logout</div>
+        </a>
       {% else %}
-        <a href="{% url 'login' %}" class="hover:underline">Login</a>
-        <a href="{% url 'register' %}" class="hover:underline ml-4">Register</a>
+        <a href="{% url 'login' %}" class="nav-btn">
+          <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.6923 0C10.1547 0 8.07692 2.16563 8.07692 4.8V6H10.3846V4.8C10.3846 3.45938 11.4032 2.4 12.6923 2.4H17.3077C18.5968 2.4 19.6154 3.45938 19.6154 4.8V6H21.9231V4.8C21.9231 2.16563 19.8453 0 17.3077 0H12.6923ZM5.625 7.2C2.51953 7.2 0 9.82031 0 13.05V24.15C0 27.3797 2.51953 30 5.625 30H24.375C27.4805 30 30 27.3797 30 24.15V13.05C30 9.82031 27.4805 7.2 24.375 7.2H5.625ZM15 15.4875C16.3386 15.4875 17.4159 16.6078 17.4159 18C17.4159 19.3922 16.3386 20.5125 15 20.5125C13.6614 20.5125 12.5841 19.3922 12.5841 18C12.5841 16.6078 13.6614 15.4875 15 15.4875Z" fill="white"/>
+          </svg>
+          <div class="nav-tooltip">Login</div>
+        </a>
+        <a href="{% url 'register' %}" class="nav-btn">
+          <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 0C10.029 0 6 4.029 6 9C6 13.971 10.029 18 15 18C19.971 18 24 13.971 24 9C24 4.029 19.971 0 15 0ZM15 21C8.373 21 3 23.686 3 27V30H27V27C27 23.686 21.627 21 15 21ZM21 12H18V15C18 15.552 17.552 16 17 16C16.448 16 16 15.552 16 15V12H13C12.448 12 12 11.552 12 11C12 10.448 12.448 10 13 10H16V7C16 6.448 16.448 6 17 6C17.552 6 18 6.448 18 7V10H21C21.552 10 22 10.448 22 11C22 11.552 21.552 12 21 12Z" fill="white"/>
+          </svg>
+          <div class="nav-tooltip">Register</div>
+        </a>
       {% endif %}
     </div>
   </nav>
