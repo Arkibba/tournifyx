@@ -5,17 +5,147 @@
 
 {% block extra_css %}
 <style>
-  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+  html, body { height: 100%; margin: 0; padding: 0; overflow: auto; }
+  /* Floating X styles */
+  #floatingXs { pointer-events: none; z-index: 9999; }
+  .floating-x {
+    position: absolute;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+    user-select: none;
+    opacity: 0;
+    will-change: transform, opacity;
+    transform: translateX(var(--drift,0)) translateY(0) rotate(var(--rot,0deg));
+    animation-name: floatX;
+    animation-fill-mode: forwards;
+  }
+
+  /* Play overlay/button shown when autoplay is blocked or user needs to start playback */
+  #videoPlayOverlay { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.45)); }
+  .play-button {
+    width: 92px;
+    height: 92px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  @keyframes floatX {
+    0% { opacity: 1; transform: translateX(var(--drift,0)) translateY(0) rotate(0deg); }
+    100% { opacity: 0; transform: translateX(calc(var(--drift,0) + 20px)) translateY(-140px) rotate(360deg); }
+  }
+
+  /* Right side long image (hidden until video ends) */
+  #sideLongImage {
+    position: fixed;
+  /* move 2 inches to the right relative to the earlier position (subtract 2in from previous calc) */
+  right: calc(24px - 1in);
+  top: 4vh;
+  height: 99vh;
+  max-width: 80vw;
+    width: 65vw;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: none;
+  transform: translateX(4px) scale(1.06);
+    opacity: 0;
+    transition: transform 550ms cubic-bezier(.2,.9,.2,1), opacity 550ms ease-out;
+    z-index: 55;
+    pointer-events: none;
+  }
+  #sideLongImage.show { transform: translateX(0) scale(1); opacity: 1; }
+  /* gentle vertical float while the image is visible */
+  @keyframes floatInPlace {
+    0% { transform: translateY(0) translateX(0) scale(1.06); }
+    50% { transform: translateY(-8px) translateX(0) scale(1.06); }
+    100% { transform: translateY(0) translateX(0) scale(1.06); }
+  }
+  #sideLongImage.show { animation: floatInPlace 3s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    #sideLongImage.show { animation: none; }
+  }
 </style>
+{% endblock %}
+
+{% block extra_debug %}
+<script>
+  (function(){
+    const v = document.getElementById('heroVideo');
+    if (!v) return;
+    try {
+      const srcs = Array.from(v.querySelectorAll('source')).map(s => s.src);
+      console.log('Hero video element found. Sources:', srcs);
+
+      // Try to play and report error if any
+      v.play().then(() => {
+        console.log('Hero video playback started successfully.');
+      }).catch(err => {
+        console.error('Hero video play() failed:', err);
+        // show a small non-blocking message on the page
+        let msg = document.getElementById('videoErrorMsg');
+        if (!msg) {
+          msg = document.createElement('div');
+          msg.id = 'videoErrorMsg';
+          msg.style.position = 'fixed';
+          msg.style.bottom = '12px';
+          msg.style.left = '12px';
+          msg.style.padding = '8px 12px';
+          msg.style.background = 'rgba(0,0,0,0.6)';
+          msg.style.color = '#fff';
+          msg.style.zIndex = '100000';
+          msg.style.borderRadius = '6px';
+          msg.style.fontSize = '13px';
+          msg.textContent = 'Video failed to autoplay — open DevTools Console to see details.';
+          document.body.appendChild(msg);
+        }
+        // show the play overlay so user can start the video manually
+        const overlay = document.getElementById('videoPlayOverlay');
+        if (overlay) {
+          overlay.classList.remove('hidden');
+        }
+      });
+    } catch (e) {
+      console.error('Error while testing hero video:', e);
+    }
+  })();
+</script>
 {% endblock %}
 
 {% block content %}
 <!-- Background Video -->
-<video class="fixed top-0 left-0 w-full h-full object-cover z-0 brightness-[.7] contrast-110" autoplay loop muted playsinline poster="{% static 'images/background.jpg' %}">
-  <source src="{% static 'videos/bg_vid.mp4' %}" type="video/mp4">
-  <source src="{% static 'videos/Bg_Video.mp4' %}" type="video/mp4">
-</video>
-<div class="fixed top-0 left-0 w-full h-full z-10 pointer-events-none bg-gradient-to-r from-black/90 via-black/30 to-black/80"></div>
+<div id="videoWrapper" class="fixed inset-0 z-0">
+  <video id="heroVideo" class="w-full h-full object-cover brightness-[.7] contrast-110" autoplay muted playsinline poster="{% static 'images/background.jpg' %}">
+    <source src="{% static 'videos/bgvi.mp4' %}" type="video/mp4">
+    <!-- fallback text -->
+    Your browser does not support the video tag.
+  </video>
+  <!-- Semi-opaque overlay that applies only to the video area -->
+  <div id="videoOverlay" class="absolute inset-0 bg-black/50 pointer-events-none transition-opacity duration-500"></div>
+
+  <!-- Play overlay: hidden by default, shown if autoplay is blocked or user taps to start -->
+  <div id="videoPlayOverlay" class="hidden absolute inset-0 z-40 flex items-center justify-center pointer-events-auto">
+    <button id="playBtn" class="play-button text-white flex items-center justify-center shadow-lg">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18l15-9L5 3z"/></svg>
+    </button>
+  </div>
+</div>
+<!-- Background image that will fade in after the video ends -->
+<div id="heroBg" class="fixed top-0 left-0 w-full h-full z-0 opacity-0 transition-opacity duration-700 ease-out bg-center bg-cover" style="background-image: url('{% static 'images/bg22.png' %}');"></div>
+<!-- Right-side long image (hidden initially, shows on video end) -->
+<div id="sideLongImage" aria-hidden="true">
+  <img src="{% static 'images/omen.png' %}" alt="" class="w-full h-full object-cover">
+</div>
+<div class="fixed top-0 left-0 w-full h-full z-10 pointer-events-none "></div>
+
+<!-- Container for floating X elements (high z so visible above static backgrounds) -->
+<div id="floatingXs" class="fixed inset-0 z-60 pointer-events-none"></div>
 
 <!-- Floating Nav (top-right) -->
 <div class="fixed top-0 left-0 w-full z-20 pointer-events-none">
@@ -51,4 +181,153 @@
     </a>
   </div>
 </div>
+{% endblock %}
+
+<!-- Additional full-screen background section revealed when scrolling down -->
+<section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/background.png' %}');">
+  <div class="absolute inset-0 bg-transparent"></div>
+  <div class="relative z-10 text-center text-white p-8">
+    <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Explore More</h2>
+    <p class="max-w-3xl mx-auto text-lg md:text-xl">This is a placeholder section — replace with additional homepage content later.</p>
+  </div>
+</section>
+
+{% block extra_js %}
+<script>
+  (function(){
+    const video = document.getElementById('heroVideo');
+    const heroBg = document.getElementById('heroBg');
+    if (!video || !heroBg) return;
+
+    // When video ends, fade in the background and hide the video for a smooth transition
+    video.addEventListener('ended', () => {
+      // hide the video overlay first
+      const overlay = document.getElementById('videoOverlay');
+      if (overlay) overlay.classList.add('opacity-0');
+
+      heroBg.classList.remove('opacity-0');
+      heroBg.classList.add('opacity-100');
+      // give the opacity transition a small delay then pause/hide video
+      setTimeout(() => {
+        try {
+          video.pause();
+          // hide the video wrapper so the static background shows through
+          const wrapper = document.getElementById('videoWrapper');
+          if (wrapper) wrapper.style.display = 'none';
+          // show the right-side long image
+          const side = document.getElementById('sideLongImage');
+          if (side) side.classList.add('show');
+          // restart floating Xs in case they were stopped
+          if (window.startFloatingXs) window.startFloatingXs();
+        } catch (e) { /* ignore */ }
+      }, 500);
+    });
+
+    // Safety: if autoplay is blocked and video doesn't start, still show the background after a timeout
+    setTimeout(() => {
+      // video.playing is non-standard; check paused/ended instead
+      if ((video.paused || video.ended) && heroBg.classList.contains('opacity-0')) {
+        // hide video overlay so background remains visible
+        const overlay = document.getElementById('videoOverlay');
+        if (overlay) overlay.classList.add('opacity-0');
+
+        heroBg.classList.remove('opacity-0');
+        heroBg.classList.add('opacity-100');
+        // show the right-side long image when we reveal the background due to autoplay being blocked
+        const side = document.getElementById('sideLongImage');
+        if (side) side.classList.add('show');
+        // ensure floating Xs are running
+        if (window.startFloatingXs) window.startFloatingXs();
+      }
+    }, 8000);
+  })();
+</script>
+<script>
+  (function(){
+    const container = document.getElementById('floatingXs');
+    if (!container) return;
+    // Determine reduced-motion preference and viewport size to limit spawns on sensitive devices
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function smallViewport(){ return window.innerWidth < 768; }
+
+    function spawnX(){
+      const x = document.createElement('div');
+      x.className = 'floating-x';
+      // randomly choose glyph: X or O
+      const glyph = Math.random() < 0.65 ? '✕' : 'O';
+      x.textContent = glyph;
+
+      // randomize initial position
+      const left = Math.random() * 100; // percent
+      const top = 20 + Math.random() * 60; // percent, keep away from very top
+      x.style.left = left + '%';
+      x.style.top = top + '%';
+
+  // randomize visual properties
+  const baseSize = glyph === 'O' ? 12 : 10;
+  const size = baseSize + Math.random() * 14; // O slightly larger on avg
+      x.style.fontSize = size + 'px';
+      x.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
+  x.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+
+      // random duration
+      const duration = prefersReduced ? 1800 + Math.random() * 1200 : 3000 + Math.random() * 4000; // shorter when reduced
+      x.style.animationDuration = duration + 'ms';
+
+      container.appendChild(x);
+
+      // remove after animation completes (small buffer)
+      setTimeout(() => { try { container.removeChild(x); } catch (e) {} }, duration + 120);
+    }
+
+    // spawn an initial burst based on device capability
+    const burstCount = prefersReduced ? 6 : (smallViewport() ? 10 : 18);
+    const burstSpacing = prefersReduced ? 260 : 180;
+    for (let i=0;i<burstCount;i++){ setTimeout(spawnX, i*burstSpacing); }
+
+    let interval = null;
+    function startInterval(){ if (interval) return; const spawnRate = prefersReduced ? 900 : (smallViewport() ? 700 : 450); interval = setInterval(spawnX, spawnRate); }
+    function stopInterval(){ if (!interval) return; clearInterval(interval); interval = null; }
+
+    // start spawning
+    startInterval();
+
+    // stop/restart spawning when the page visibility changes to reduce CPU
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopInterval();
+      } else {
+        startInterval();
+      }
+    });
+
+    // expose helpers so other scripts (e.g., video-ended handler) can restart spawning
+    window.startFloatingXs = startInterval;
+    window.stopFloatingXs = stopInterval;
+  })();
+</script>
+<script>
+  // Wire the play button to start video playback and hide the overlay
+  (function(){
+    const btn = document.getElementById('playBtn');
+    const overlay = document.getElementById('videoPlayOverlay');
+    const video = document.getElementById('heroVideo');
+    if (!btn || !overlay || !video) return;
+
+    btn.addEventListener('click', async () => {
+      try {
+        await video.play();
+      } catch (e) {
+        console.error('Play button failed to start video:', e);
+      }
+      overlay.classList.add('hidden');
+      // ensure the video wrapper is visible
+      const wrapper = document.getElementById('videoWrapper'); if (wrapper) wrapper.style.display = '';
+      // hide overlay dim if we want the video to appear lit; keep current behavior
+      const vOverlay = document.getElementById('videoOverlay'); if (vOverlay) vOverlay.classList.remove('opacity-0');
+      // start glyphs if available
+      if (window.startFloatingXs) window.startFloatingXs();
+    });
+  })();
+</script>
 {% endblock %}
