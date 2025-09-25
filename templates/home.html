@@ -4,224 +4,51 @@
 {% block title %}TournifyX | Home{% endblock %}
 
 {% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    overflow: hidden;
-    background: transparent;
-  }
-
-  .exo-2 {
-    font-family: 'Exo 2', sans-serif;
-  }
-
-  .orbitron {
-    font-family: 'Orbitron', monospace;
-  }
-
-  .logo-orange {
-    color: #c7772f;
-  }
-
-  /* Button Styles */
-  .action-button {
-    padding: 15px 30px;
-    margin: 10px;
-    border: none;
-    border-radius: 10px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .create-btn {
-    background: transparent;
-    color: #c7772f;
-    border: 2px solid #c7772f;
-    box-shadow: 0 4px 15px rgba(199, 119, 47, 0.2);
-  }
-
-  .join-btn {
-    background: transparent;
-    color: #2196F3;
-    border: 2px solid #2196F3;
-    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
-  }
-
-  /* Create Animation - Building/Growing effect */
-  @keyframes createPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(236, 109, 16, 0.6); }
-    100% { transform: scale(1); }
-  }
-
-  .create-btn:hover {
-    animation: createPulse 0.6s ease-in-out infinite;
-    background: rgba(199, 119, 47, 0.1);
-    box-shadow: 0 6px 20px rgba(199, 119, 47, 0.4);
-  }
-
-  /* Join Animation - Connecting/Merging effect */
-  @keyframes joinSlide {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-    100% { transform: translateX(0); }
-  }
-
-  .join-btn:hover {
-    animation: joinSlide 0.5s ease-in-out infinite;
-    background: rgba(33, 150, 243, 0.1);
-    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-  }
-
-  /* Fade in animation for the right side image */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateX(50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
+  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Full Screen Background Image -->
-<div 
-  class="fixed inset-0 w-full h-full z-0"
-  style="background-image: url('{% static 'images/background.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
-></div>
+<!-- Background Video -->
+<video class="fixed top-0 left-0 w-full h-full object-cover z-0 brightness-[.7] contrast-110" autoplay loop muted playsinline poster="{% static 'images/background.jpg' %}">
+  <source src="{% static 'videos/bg_vid.mp4' %}" type="video/mp4">
+  <source src="{% static 'videos/Bg_Video.mp4' %}" type="video/mp4">
+</video>
+<div class="fixed top-0 left-0 w-full h-full z-10 pointer-events-none bg-gradient-to-r from-black/90 via-black/30 to-black/80"></div>
 
-<!-- Logo -->
-<div class="fixed top-32 left-72 z-20 text-center">
-  <img src="{% static 'images/logo.png' %}" alt="TournifyX Logo" class="w-40 h-40 mx-auto mb-4">
-  <div class="logo-orange drop-shadow-2xl">
-    <p class="exo-2 text-8xl font-bold mb-4">WELCOME TO</p>
-    <h1 class="orbitron text-8xl font-bold mb-8">TournifyX</h1>
-  </div>
-  
-  <!-- Action Buttons -->
-  <div class="flex justify-center space-x-6 mt-8">
-    <button onclick="window.location.href='{% url 'host_tournament' %}'" class="action-button create-btn exo-2">
-      Create Tournament
-    </button>
-    <button onclick="window.location.href='{% url 'join_tournament' %}'" class="action-button join-btn exo-2">
-      Join Tournament
-    </button>
+<!-- Floating Nav (top-right) -->
+<div class="fixed top-0 left-0 w-full z-20 pointer-events-none">
+  <div class="flex justify-end items-center pt-10 pr-16 w-full">
+    <a href="#" class="pointer-events-auto bg-white text-gray-900 font-bold rounded-full px-8 py-3 text-base shadow-lg flex items-center gap-2 border-none hover:bg-gray-100 transition">
+      Watch Live Stream
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M13 18l6-6-6-6"/></svg>
+    </a>
   </div>
 </div>
 
-<!-- Right Side Long Image with Fade Animation -->
-<div 
-  id="rightSideImage"
-  class="fixed z-10"
-  style="
-    right: 80px; 
-    top: 20px; 
-    width: 700px; 
-    height: 1100px; 
-    background-image: url('{% static 'images/omen.png' %}'); 
-    background-size: cover; 
-    background-position: center; 
-    background-repeat: no-repeat;
-    opacity: 0;
-    animation: fadeIn 1s ease-in-out .3s forwards;
-    border-radius: 10px;
-  "
-></div>
-
-<!-- Modal (Pop-up Window) -->
-<div id="myModal" class="fixed inset-0 flex items-center justify-center z-30 hidden bg-gray-900 bg-opacity-50">
-  <div class="bg-white p-6 rounded-lg max-w-sm w-full">
-    <h2 class="text-2xl font-bold mb-4 text-center text-black">Get Started</h2>
-    <div class="flex justify-center space-x-4">
-      <button id="hostTournament" class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-700">Host a Tournament</button>
-      <button id="joinTournament" class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-700">Join a Tournament</button>
+<div class="relative z-20 h-screen flex flex-col justify-between">
+  <!-- Left-aligned: Logo (repositionable), Heading, and Buttons -->
+  <div class="absolute top-1/2 left-[7vw] -translate-y-[80%] z-30 flex flex-col items-start">
+    <!-- Adjust the Tailwind classes below to reposition the logo as you like -->
+    <div class="mb-6">
+      <img src="{% static 'images/logo.png' %}" alt="TournifyX Logo" class="w-28 h-28 drop-shadow-xl" />
     </div>
-
-    <!-- Hidden Forms -->
-    <div id="hostForm" class="hidden mt-4">
-      <h3 class="text-xl font-semibold mb-4 text-black">Host a Tournament</h3>
-      <form action="/host" method="POST">
-        <input type="text" name="tournamentName" placeholder="Tournament Name" class="w-full p-2 mb-4 border rounded text-black">
-        <input type="date" name="date" class="w-full p-2 mb-4 border rounded text-black">
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">Create Tournament</button>
-      </form>
-    </div>
-
-    <div id="joinForm" class="hidden mt-4">
-      <h3 class="text-xl font-semibold mb-4 text-black">Join a Tournament</h3>
-      <form action="/join_tournament" method="POST">
-        <input type="text" name="tournamentId" placeholder="Tournament ID" class="w-full p-2 mb-4 border rounded text-black">
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded">Join Tournament</button>
-      </form>
+    <h1 class="text-white text-5xl md:text-7xl font-extrabold uppercase tracking-widest leading-tight drop-shadow-lg mb-8 text-left">
+      WELCOME TO<br>TOURNIFYX
+    </h1>
+    <div class="flex gap-6">
+      <a href="{% url 'join_tournament' %}" class="bg-white/20 text-white border-2 border-white/30 rounded-full text-lg font-bold px-8 py-3 shadow-md hover:bg-orange-600 hover:text-white hover:border-orange-600 transition backdrop-blur-sm float-on-hover">Join a tournament</a>
+      <a href="{% url 'host_tournament' %}" class="bg-white/20 text-white border-2 border-white/30 rounded-full text-lg font-bold px-8 py-3 shadow-md hover:bg-orange-600 hover:text-white hover:border-orange-600 transition backdrop-blur-sm float-on-hover">Create a tournament</a>
     </div>
   </div>
+
+  <!-- Bottom-Center: Scroll Indicator -->
+  <div class="fixed left-1/2 bottom-2 md:bottom-4 -translate-x-1/2 z-40 flex flex-col items-center opacity-85">
+    <a href="{% url 'about' %}#bg" class="text-white text-base tracking-wider mb-1 hover:underline">Scroll Down</a>
+    <a href="{% url 'about' %}#bg">
+      <svg width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+    </a>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  const modal = document.getElementById('myModal');
-  const openModalBtn = document.getElementById('openModal');
-  const hostForm = document.getElementById('hostForm');
-  const joinForm = document.getElementById('joinForm');
-  const hostBtn = document.getElementById('hostTournament');
-  const joinBtn = document.getElementById('joinTournament');
-
-  // Open modal with specific form
-  function openModal(type) {
-    modal.classList.remove('hidden');
-    if (type === 'create') {
-      hostForm.classList.remove('hidden');
-      joinForm.classList.add('hidden');
-    } else if (type === 'join') {
-      joinForm.classList.remove('hidden');
-      hostForm.classList.add('hidden');
-    }
-  }
-
-  // Open modal
-  if (openModalBtn) {
-    openModalBtn.addEventListener('click', () => {
-      modal.classList.remove('hidden');
-    });
-  }
-
-  // Show host form
-  if (hostBtn) {
-    hostBtn.addEventListener('click', () => {
-      hostForm.classList.remove('hidden');
-      joinForm.classList.add('hidden');
-    });
-  }
-
-  // Show join form
-  if (joinBtn) {
-    joinBtn.addEventListener('click', () => {
-      joinForm.classList.remove('hidden');
-      hostForm.classList.add('hidden');
-    });
-  }
-
-  // Close modal if clicked outside
-  if (modal) {
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        modal.classList.add('hidden');
-      }
-    });
-  }
-</script>
 {% endblock %}
