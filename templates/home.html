@@ -45,32 +45,32 @@
   /* Right side long image (hidden until video ends) */
   #sideLongImage {
     position: fixed;
-  /* move 2 inches to the right relative to the earlier position (subtract 2in from previous calc) */
-  right: calc(24px - 1in);
-  top: 4vh;
-  height: 99vh;
-  max-width: 80vw;
-    width: 65vw;
+    right: calc(24px + 0.5in); /* move 2 inches more to the right */
+    top: 2vh;
+    height: 105vh;
+    max-width: 60vw;
+    width: auto;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: none;
-  transform: translateX(4px) scale(1.06);
+    transform: translateX(0) scale(1.22); /* bigger */
     opacity: 0;
-    transition: transform 550ms cubic-bezier(.2,.9,.2,1), opacity 550ms ease-out;
+    transition: opacity 550ms ease-out, transform 550ms ease-out, right 550ms ease-out, height 550ms ease-out, max-width 550ms ease-out;
     z-index: 55;
     pointer-events: none;
+    animation: floatOmen 3.5s ease-in-out infinite;
   }
-  #sideLongImage.show { transform: translateX(0) scale(1); opacity: 1; }
-  /* gentle vertical float while the image is visible */
-  @keyframes floatInPlace {
-    0% { transform: translateY(0) translateX(0) scale(1.06); }
-    50% { transform: translateY(-8px) translateX(0) scale(1.06); }
-    100% { transform: translateY(0) translateX(0) scale(1.06); }
+
+  @keyframes floatOmen {
+    0% { transform: translateX(0) scale(1.22) translateY(0); }
+    50% { transform: translateX(0) scale(1.22) translateY(-24px); }
+    100% { transform: translateX(0) scale(1.22) translateY(0); }
   }
-  #sideLongImage.show { animation: floatInPlace 3s ease-in-out infinite; }
-  @media (prefers-reduced-motion: reduce) {
-    #sideLongImage.show { animation: none; }
+  #sideLongImage.show { 
+    transform: translateX(0) scale(1.13); /* still bigger when shown */
+    opacity: 1; 
   }
+  #sideLongImage.hide-on-bg { opacity: 0 !important; pointer-events: none; }
 </style>
 {% endblock %}
 
@@ -80,6 +80,7 @@
     const v = document.getElementById('heroVideo');
     if (!v) return;
     try {
+      v.playbackRate = 2;
       const srcs = Array.from(v.querySelectorAll('source')).map(s => s.src);
       console.log('Hero video element found. Sources:', srcs);
 
@@ -122,6 +123,7 @@
 <!-- Background Video -->
 <div id="videoWrapper" class="fixed inset-0 z-0">
   <video id="heroVideo" class="w-full h-full object-cover brightness-[.7] contrast-110" autoplay muted playsinline poster="{% static 'images/background.jpg' %}">
+
     <source src="{% static 'videos/bgvid.mp4' %}" type="video/mp4">
     <!-- fallback text -->
     Your browser does not support the video tag.
@@ -137,7 +139,7 @@
   </div>
 </div>
 <!-- Background image that will fade in after the video ends -->
-<div id="heroBg" class="fixed top-0 left-0 w-full h-full z-0 opacity-0 transition-opacity duration-700 ease-out bg-center bg-cover" style="background-image: url('{% static 'images/bg22.png' %}');"></div>
+<div id="heroBg" class="fixed top-0 left-0 w-full h-full z-0 opacity-0 transition-opacity duration-700 ease-out bg-center bg-cover" style="background-image: url('{% static 'images/bg.png' %}');"></div>
 <!-- Right-side long image (hidden initially, shows on video end) -->
 <div id="sideLongImage" aria-hidden="true">
   <img src="{% static 'images/omen.png' %}" alt="" class="w-full h-full object-cover">
@@ -175,16 +177,14 @@
 
   <!-- Bottom-Center: Scroll Indicator -->
   <div class="fixed left-1/2 bottom-2 md:bottom-4 -translate-x-1/2 z-40 flex flex-col items-center opacity-85">
-    <a href="{% url 'about' %}#bg" class="text-white text-base tracking-wider mb-1 hover:underline">Scroll Down</a>
-    <a href="{% url 'about' %}#bg">
+    <a href="#esports-games">
       <svg width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
     </a>
   </div>
 </div>
-{% endblock %}
 
 <!-- Additional full-screen background section revealed when scrolling down -->
-<section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/background.png' %}');">
+<section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/bg2.png' %}');">
   <div class="absolute inset-0 bg-transparent"></div>
   <div class="relative z-10 text-center text-white p-8">
     <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Explore More</h2>
@@ -192,142 +192,278 @@
   </div>
 </section>
 
+<!-- New section: Most Promising Esports Games -->
+<section id="esports-games" class="relative w-full min-h-screen bg-gray-900 flex items-center justify-center py-20">
+  <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
+  <div class="relative z-10 max-w-6xl mx-auto px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-6xl font-extrabold text-white mb-6">Most Promising <span class="text-orange-500">Esports Games</span></h2>
+      <p class="text-xl text-gray-300 max-w-3xl mx-auto">Discover the games that are shaping the future of competitive gaming</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Valorant -->
+      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+        <div class="h-48 bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
+          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/valorant.mov' %}" autoplay loop muted playsinline></video>
+        </div>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold text-white mb-3">Valorant</h3>
+          <p class="text-gray-300 mb-4">Tactical FPS that combines precise shooting with unique agent abilities</p>
+          <div class="flex justify-between items-center">
+            <span class="text-orange-500 font-semibold">Growing Fast</span>
+            <div class="w-16 h-2 bg-gray-700 rounded-full">
+              <div class="w-14 h-2 bg-orange-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- League of Legends -->
+      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+        <div class="h-48 bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/lol.mov' %}" autoplay loop muted playsinline></video>
+        </div>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold text-white mb-3">League of Legends</h3>
+          <p class="text-gray-300 mb-4">The king of MOBAs with the largest esports ecosystem worldwide</p>
+          <div class="flex justify-between items-center">
+            <span class="text-green-500 font-semibold">Established</span>
+            <div class="w-16 h-2 bg-gray-700 rounded-full">
+              <div class="w-full h-2 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CS2 -->
+      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+        <div class="h-48 bg-gradient-to-br from-yellow-600 to-orange-600 flex items-center justify-center">
+          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/cs2.mov' %}" autoplay loop muted playsinline></video>
+        </div>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold text-white mb-3">Counter-Strike 2</h3>
+          <p class="text-gray-300 mb-4">The evolution of the legendary tactical shooter with updated graphics</p>
+          <div class="flex justify-between items-center">
+            <span class="text-yellow-500 font-semibold">Rising</span>
+            <div class="w-16 h-2 bg-gray-700 rounded-full">
+              <div class="w-12 h-2 bg-yellow-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apex Legends -->
+      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+        <div class="h-48 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/apex.mp4' %}" autoplay loop muted playsinline></video>
+        </div>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold text-white mb-3">Apex Legends</h3>
+          <p class="text-gray-300 mb-4">Battle royale with unique legends and fast-paced tactical gameplay</p>
+          <div class="flex justify-between items-center">
+            <span class="text-purple-500 font-semibold">Competitive</span>
+            <div class="w-16 h-2 bg-gray-700 rounded-full">
+              <div class="w-10 h-2 bg-purple-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rocket League -->
+      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+        <div class="h-48 bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center">
+          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/rl.mov' %}" autoplay loop muted playsinline></video>
+        </div>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold text-white mb-3">Rocket League</h3>
+          <p class="text-gray-300 mb-4">Soccer meets racing in this unique and highly competitive sports game</p>
+          <div class="flex justify-between items-center">
+            <span class="text-cyan-500 font-semibold">Unique</span>
+            <div class="w-16 h-2 bg-gray-700 rounded-full">
+              <div class="w-11 h-2 bg-cyan-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fortnite -->
+      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+        <div class="h-48 bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/fortnite.mov' %}" autoplay loop muted playsinline></video>
+        </div>
+        <div class="p-6">
+          <h3 class="text-2xl font-bold text-white mb-3">Fortnite</h3>
+          <p class="text-gray-300 mb-4">Building-based battle royale with creative gameplay mechanics</p>
+          <div class="flex justify-between items-center">
+            <span class="text-indigo-500 font-semibold">Popular</span>
+            <div class="w-16 h-2 bg-gray-700 rounded-full">
+              <div class="w-13 h-2 bg-indigo-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
 {% block extra_js %}
 <script>
-  (function(){
-    const video = document.getElementById('heroVideo');
-    const heroBg = document.getElementById('heroBg');
-    if (!video || !heroBg) return;
-
-    // When video ends, fade in the background and hide the video for a smooth transition
-    video.addEventListener('ended', () => {
-      // hide the video overlay first
-      const overlay = document.getElementById('videoOverlay');
-      if (overlay) overlay.classList.add('opacity-0');
-
-      heroBg.classList.remove('opacity-0');
-      heroBg.classList.add('opacity-100');
-      // give the opacity transition a small delay then pause/hide video
-      setTimeout(() => {
-        try {
-          video.pause();
-          // hide the video wrapper so the static background shows through
-          const wrapper = document.getElementById('videoWrapper');
-          if (wrapper) wrapper.style.display = 'none';
-          // show the right-side long image
-          const side = document.getElementById('sideLongImage');
-          if (side) side.classList.add('show');
-          // restart floating Xs in case they were stopped
-          if (window.startFloatingXs) window.startFloatingXs();
-        } catch (e) { /* ignore */ }
-      }, 500);
-    });
-
-    // Safety: if autoplay is blocked and video doesn't start, still show the background after a timeout
-    setTimeout(() => {
-      // video.playing is non-standard; check paused/ended instead
-      if ((video.paused || video.ended) && heroBg.classList.contains('opacity-0')) {
-        // hide video overlay so background remains visible
-        const overlay = document.getElementById('videoOverlay');
-        if (overlay) overlay.classList.add('opacity-0');
-
-        heroBg.classList.remove('opacity-0');
-        heroBg.classList.add('opacity-100');
-        // show the right-side long image when we reveal the background due to autoplay being blocked
-        const side = document.getElementById('sideLongImage');
-        if (side) side.classList.add('show');
-        // ensure floating Xs are running
-        if (window.startFloatingXs) window.startFloatingXs();
-      }
-    }, 8000);
-  })();
-</script>
-<script>
+  // Floating X and O spawner
   (function(){
     const container = document.getElementById('floatingXs');
     if (!container) return;
-    // Determine reduced-motion preference and viewport size to limit spawns on sensitive devices
-    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function smallViewport(){ return window.innerWidth < 768; }
+    
+    function spawnFloating() {
+      const el = document.createElement('div');
+      el.className = 'floating-x';
+      
+      // Randomly choose between X and O
+      el.textContent = Math.random() > 0.5 ? '✕' : 'O';
+      
+  // Random position and animation (cover full viewport)
+  const left = Math.random() * 100; // 0-100% from left
+  const bottom = Math.random() * 80; // 0-80% from bottom
+  const drift = -40 + Math.random() * 80; // -40px to +40px drift
+  const rot = -180 + Math.random() * 360; // -180 to +180 degrees
+  const duration = 3000 + Math.random() * 4000; // 3-7s duration
 
-    function spawnX(){
-      const x = document.createElement('div');
-      x.className = 'floating-x';
-      // randomly choose glyph: X or O
-      const glyph = Math.random() < 0.65 ? '✕' : 'O';
-      x.textContent = glyph;
-
-      // randomize initial position
-      const left = Math.random() * 100; // percent
-      const top = 20 + Math.random() * 60; // percent, keep away from very top
-      x.style.left = left + '%';
-      x.style.top = top + '%';
-
-  // randomize visual properties
-  const baseSize = glyph === 'O' ? 12 : 10;
-  const size = baseSize + Math.random() * 14; // O slightly larger on avg
-      x.style.fontSize = size + 'px';
-      x.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
-  x.style.setProperty('--rot', (Math.random() * 360) + 'deg');
-
-      // random duration
-      const duration = prefersReduced ? 1800 + Math.random() * 1200 : 3000 + Math.random() * 4000; // shorter when reduced
-      x.style.animationDuration = duration + 'ms';
-
-      container.appendChild(x);
-
-      // remove after animation completes (small buffer)
-      setTimeout(() => { try { container.removeChild(x); } catch (e) {} }, duration + 120);
+  el.style.setProperty('--drift', `${drift}px`);
+  el.style.setProperty('--rot', `${rot}deg`);
+  el.style.left = `${left}%`;
+  el.style.bottom = `${bottom}%`;
+  el.style.animationDuration = `${duration}ms`;
+      
+      container.appendChild(el);
+      setTimeout(() => el.remove(), duration);
     }
 
-    // spawn an initial burst based on device capability
-    const burstCount = prefersReduced ? 6 : (smallViewport() ? 10 : 18);
-    const burstSpacing = prefersReduced ? 260 : 180;
-    for (let i=0;i<burstCount;i++){ setTimeout(spawnX, i*burstSpacing); }
+    // Initial burst
+    for (let i = 0; i < 10; i++) {
+      setTimeout(spawnFloating, i * 200);
+    }
 
-    let interval = null;
-    function startInterval(){ if (interval) return; const spawnRate = prefersReduced ? 900 : (smallViewport() ? 700 : 450); interval = setInterval(spawnX, spawnRate); }
-    function stopInterval(){ if (!interval) return; clearInterval(interval); interval = null; }
+    // Continuous spawning
+    const interval = setInterval(spawnFloating, 900);
 
-    // start spawning
-    startInterval();
-
-    // stop/restart spawning when the page visibility changes to reduce CPU
+    // Pause when page hidden
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        stopInterval();
-      } else {
-        startInterval();
-      }
+      if (document.hidden) clearInterval(interval);
     });
 
-    // expose helpers so other scripts (e.g., video-ended handler) can restart spawning
-    window.startFloatingXs = startInterval;
-    window.stopFloatingXs = stopInterval;
+    // Expose start/stop helpers
+    window.startFloatingXs = () => {
+      for (let i = 0; i < 10; i++) setTimeout(spawnFloating, i * 200);
+    };
+  })();
+
+  // Video and background handler
+  (function(){
+    const video = document.getElementById('heroVideo');
+    const heroBg = document.getElementById('heroBg');
+    const sideImage = document.getElementById('sideLongImage');
+    const bgSection = document.getElementById('bg');
+    if (!video || !heroBg || !sideImage || !bgSection) return;
+
+    let videoEnded = false;
+    let heroInView = false;
+
+    function showOmen() {
+      sideImage.classList.add('show');
+      sideImage.classList.remove('hide-on-bg');
+    }
+    function hideOmen() {
+      sideImage.classList.remove('show');
+      sideImage.classList.add('hide-on-bg');
+    }
+
+    // IntersectionObserver for hero section
+    const heroSection = document.querySelector('.relative.z-20.h-screen.flex.flex-col.justify-between');
+    let observer = null;
+    if (heroSection) {
+      observer = new IntersectionObserver((entries) => {
+        heroInView = entries[0].isIntersecting;
+        if (videoEnded) {
+          if (heroInView) {
+            showOmen();
+          } else {
+            hideOmen();
+          }
+        }
+      }, { threshold: 0.15 }); // 15% of hero section visible
+      observer.observe(heroSection);
+    }
+
+    function handleOmenVisibility() {
+      if (!videoEnded) {
+        hideOmen();
+        return;
+      }
+      if (heroInView) {
+        showOmen();
+      } else {
+        hideOmen();
+      }
+    }
+
+    function onVideoEndOrFallback() {
+      heroBg.classList.remove('opacity-0');
+      heroBg.classList.add('opacity-100');
+      setTimeout(() => {
+        video.pause();
+        videoEnded = true;
+        handleOmenVisibility();
+      }, 500);
+    }
+
+    video.addEventListener('ended', onVideoEndOrFallback);
+    // Autoplay fallback
+    setTimeout(() => {
+      if (video.paused && !videoEnded) {
+        onVideoEndOrFallback();
+      }
+    }, 8000);
+
+    // Initial check
+    handleOmenVisibility();
   })();
 </script>
 <script>
-  // Wire the play button to start video playback and hide the overlay
+  // Hide omen.png when scrolling down
   (function(){
-    const btn = document.getElementById('playBtn');
-    const overlay = document.getElementById('videoPlayOverlay');
-    const video = document.getElementById('heroVideo');
-    if (!btn || !overlay || !video) return;
+    const sideImage = document.getElementById('sideLongImage');
+    if (!sideImage) return;
 
-    btn.addEventListener('click', async () => {
-      try {
-        await video.play();
-      } catch (e) {
-        console.error('Play button failed to start video:', e);
+    let ticking = false;
+    
+    function handleScroll() {
+      const scrollY = window.scrollY;
+      const triggerPoint = window.innerHeight * 0.15; // Hide when scrolled 15% of viewport
+      
+      if (sideImage.classList.contains('show')) {
+        if (scrollY > triggerPoint) {
+          sideImage.classList.add('hide-on-scroll');
+        } else {
+          sideImage.classList.remove('hide-on-scroll');
+        }
       }
-      overlay.classList.add('hidden');
-      // ensure the video wrapper is visible
-      const wrapper = document.getElementById('videoWrapper'); if (wrapper) wrapper.style.display = '';
-      // hide overlay dim if we want the video to appear lit; keep current behavior
-      const vOverlay = document.getElementById('videoOverlay'); if (vOverlay) vOverlay.classList.remove('opacity-0');
-      // start glyphs if available
-      if (window.startFloatingXs) window.startFloatingXs();
-    });
+      
+      ticking = false;
+    }
+    
+    function requestTick() {
+      if (!ticking) {
+        requestAnimationFrame(handleScroll);
+        ticking = true;
+      }
+    }
+    
+    window.addEventListener('scroll', requestTick, { passive: true });
+    
+    // Initial check in case page loads already scrolled
+    handleScroll();
   })();
 </script>
 {% endblock %}
