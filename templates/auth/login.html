@@ -27,6 +27,24 @@
 
 <body class="relative flex items-center justify-center min-h-screen bg-black fade-transition opacity-0">
 
+     <!-- Popup Messages -->
+     {% if messages %}
+         <div id="popup-messages" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center space-y-2">
+             {% for message in messages %}
+                 <div class="px-6 py-3 rounded shadow-lg text-white font-semibold
+                     {% if message.tags == 'error' %}bg-red-600{% elif message.tags == 'success' %}bg-green-600{% else %}bg-orange-500{% endif %}">
+                     {{ message }}
+                 </div>
+             {% endfor %}
+         </div>
+         <script>
+             setTimeout(() => {
+                 const popup = document.getElementById('popup-messages');
+                 if (popup) popup.style.display = 'none';
+             }, 3500);
+         </script>
+     {% endif %}
+
 
    <!-- Video Background -->
    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0" poster="{% static 'images/fallback.jpg' %}">

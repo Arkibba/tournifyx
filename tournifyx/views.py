@@ -61,7 +61,67 @@ def generate_league_fixtures(players):
 
 # Views
 def home(request):
-    return render(request, 'home.html')
+    # Top Players: aggregate across all tournaments
+    top_players_qs = (
+        PointTable.objects.select_related('player')
+        .values('player__name', 'player__id')
+        .annotate(
+            total_points=models.Sum('points'),
+            total_wins=models.Sum('wins'),
+            total_tournaments=models.Count('tournament', distinct=True),
+            total_matches=models.Sum('matches_played'),
+        )
+        .order_by('-total_points', '-total_wins')[:10]
+    )
+
+    # Prepare player leaderboard data
+    top_players = []
+    for p in top_players_qs:
+        win_rate = 0
+        if p['total_matches']:
+            win_rate = round(100 * p['total_wins'] / p['total_matches'])
+        top_players.append({
+            'username': p['player__name'],
+            'points': p['total_points'],
+            'tournaments': p['total_tournaments'],
+            'wins': p['total_wins'],
+            'win_rate': win_rate,
+            # Placeholder avatar (replace with real if available)
+            'avatar_url': '/static/images/github.png',
+        })
+
+    # Top Teams: group by team_name, ignore blank/null
+    top_teams_qs = (
+        Player.objects.exclude(team_name__isnull=True).exclude(team_name='')
+        .values('team_name')
+        .annotate(
+            team_points=models.Sum('pointtable__points'),
+            team_wins=models.Sum('pointtable__wins'),
+            team_tournaments=models.Count('tournament', distinct=True),
+            team_matches=models.Sum('pointtable__matches_played'),
+        )
+        .order_by('-team_points', '-team_wins')[:10]
+    )
+
+    top_teams = []
+    for t in top_teams_qs:
+        win_rate = 0
+        if t['team_matches']:
+            win_rate = round(100 * t['team_wins'] / t['team_matches'])
+        top_teams.append({
+            'name': t['team_name'],
+            'points': t['team_points'],
+            'tournaments': t['team_tournaments'],
+            'wins': t['team_wins'],
+            'win_rate': win_rate,
+            # Placeholder logo (replace with real if available)
+            'logo_url': '/static/images/logo.png',
+        })
+
+    return render(request, 'home.html', {
+        'top_players': top_players,
+        'top_teams': top_teams,
+    })
 
 
 # View to update match result and update point table
@@ -152,15 +212,19 @@ def register(request):
             messages.error(request, 'Passwords do not match!')
             return render(request, 'auth/register.html')
 
+
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already taken!')
+            return render(request, 'auth/register.html')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already in use!')
             return render(request, 'auth/register.html')
 
         user = User.objects.create_user(username=username, password=password1, email=email)
         user.save()
 
-        # Automatically create UserProfile
-        UserProfile.objects.create(user=user)
+
 
         # Optional: Also create a HostProfile now, or later when they choose to host
         HostProfile.objects.create(user=user)
@@ -179,6 +243,12 @@ def login(request):
 
         if user is not None:
             auth_login(request, user)
+            # Ensure UserProfile exists for this user
+            from .models import UserProfile
+            try:
+                user.userprofile
+            except UserProfile.DoesNotExist:
+                UserProfile.objects.create(user=user)
             messages.success(request, '')
             return redirect('home')
         else:

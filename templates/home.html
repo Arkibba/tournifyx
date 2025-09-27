@@ -186,9 +186,78 @@
 <!-- Additional full-screen background section revealed when scrolling down -->
 <section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/bg2.png' %}');">
   <div class="absolute inset-0 bg-transparent"></div>
-  <div class="relative z-10 text-center text-white p-8">
-    <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Explore More</h2>
-    <p class="max-w-3xl mx-auto text-lg md:text-xl">This is a placeholder section — replace with additional homepage content later.</p>
+  <div class="relative z-10 w-full max-w-6xl mx-auto p-8">
+    <h2 class="text-4xl md:text-5xl font-extrabold mb-8 text-center">Explore More</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Player Leaderboard -->
+      <div class="bg-black/60 rounded-2xl shadow-lg p-6 flex flex-col">
+        <h3 class="text-2xl font-bold text-orange-400 mb-4 text-center">Top Players</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-white">
+            <thead>
+              <tr class="border-b border-gray-700">
+                <th class="py-2 px-3">#</th>
+                <th class="py-2 px-3">Avatar</th>
+                <th class="py-2 px-3">Username</th>
+                <th class="py-2 px-3">Points</th>
+                <th class="py-2 px-3">Tournaments</th>
+                <th class="py-2 px-3">Wins</th>
+                <th class="py-2 px-3">Win Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for player in top_players %}
+              <tr class="border-b border-gray-800 hover:bg-orange-900/20 transition">
+                <td class="py-2 px-3 font-bold">{{ forloop.counter }}</td>
+                <td class="py-2 px-3"><img src="{{ player.avatar_url }}" alt="avatar" class="w-8 h-8 rounded-full"></td>
+                <td class="py-2 px-3">{{ player.username }}</td>
+                <td class="py-2 px-3">{{ player.points }}</td>
+                <td class="py-2 px-3">{{ player.tournaments }}</td>
+                <td class="py-2 px-3">{{ player.wins }}</td>
+                <td class="py-2 px-3">{{ player.win_rate }}%</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="py-4 text-center text-gray-400">No player data available.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Team Leaderboard -->
+      <div class="bg-black/60 rounded-2xl shadow-lg p-6 flex flex-col">
+        <h3 class="text-2xl font-bold text-orange-400 mb-4 text-center">Top Teams</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-white">
+            <thead>
+              <tr class="border-b border-gray-700">
+                <th class="py-2 px-3">#</th>
+                <th class="py-2 px-3">Logo</th>
+                <th class="py-2 px-3">Team Name</th>
+                <th class="py-2 px-3">Points</th>
+                <th class="py-2 px-3">Tournaments</th>
+                <th class="py-2 px-3">Wins</th>
+                <th class="py-2 px-3">Win Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for team in top_teams %}
+              <tr class="border-b border-gray-800 hover:bg-orange-900/20 transition">
+                <td class="py-2 px-3 font-bold">{{ forloop.counter }}</td>
+                <td class="py-2 px-3"><img src="{{ team.logo_url }}" alt="logo" class="w-8 h-8 rounded-full"></td>
+                <td class="py-2 px-3">{{ team.name }}</td>
+                <td class="py-2 px-3">{{ team.points }}</td>
+                <td class="py-2 px-3">{{ team.tournaments }}</td>
+                <td class="py-2 px-3">{{ team.wins }}</td>
+                <td class="py-2 px-3">{{ team.win_rate }}%</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="py-4 text-center text-gray-400">No team data available.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
