@@ -61,6 +61,7 @@ def generate_league_fixtures(players):
     fixtures = list(itertools.combinations(players, 2))
     return fixtures
 
+
 # Views
 def home(request):
     # Top Players: aggregate across all tournaments

@@ -55,12 +55,20 @@
 
    <!-- Fixtures Section (Initially Hidden) -->
    <div id="fixtures-panel" class="hidden">
-       <h2 class="text-2xl font-semibold text-gray-200 mb-4">Fixtures</h2>
+       <div class="flex items-center justify-between mb-4">
+    <h2 class="text-2xl font-semibold text-gray-200">Fixtures</h2>
+    {% if is_host %}
+        <button id="updateAllBtn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
+            Update All
+        </button>
+    {% endif %}
+</div>
        <ul class="bg-gray-900 bg-opacity-80 shadow-md rounded-lg divide-y divide-gray-700">
            {% for match in matches %}
                <li class="p-4 hover:bg-gray-700">
                    {% if is_host %}
-                       <form method="post" action="{% url 'update_match_result' match.id %}" class="flex items-center space-x-4">
+                       <form method="post" action="{% url 'update_match_result' match.id %}" 
+                       class="match-form flex items-center space-x-4">
                            {% csrf_token %}
                            <span class="font-medium">{{ match.player1.name }}</span>
                            <span class="text-gray-400">vs</span>
@@ -73,7 +81,6 @@
                            <label class="text-gray-300 ml-2">
                                <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
                            </label>
-                           <button type="submit" class="ml-2 px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded">Update</button>
                        </form>
                    {% else %}
                        <span class="font-medium">{{ match.player1.name }}</span>
@@ -104,7 +111,8 @@
                 {% for match in stage_matches %}
                 <li class="p-4 hover:bg-gray-700">
                     {% if is_host %}
-                    <form method="post" action="{% url 'update_match_result' match.id %}" class="flex flex-wrap items-center gap-2">
+                    <form method="post" action="{% url 'update_match_result' match.id %}" 
+      class="match-form flex flex-wrap items-center gap-2">
                         {% csrf_token %}
                         <span class="font-medium">{{ match.player1.name }}</span>
                         <span class="text-gray-400">vs</span>
@@ -120,7 +128,6 @@
                             <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
                         </label>
 
-                        <button type="submit" class="ml-2 px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded">Update</button>
                     </form>
                     {% else %}
                     <span class="font-medium">{{ match.player1.name }}</span>
@@ -217,5 +224,13 @@ document.querySelectorAll('form').forEach(function(form) {
         winnerSelect.addEventListener('change', updateState);
     }
 });
+// Update All button logic
+document.getElementById("updateAllBtn")?.addEventListener("click", function () {
+    const forms = document.querySelectorAll(".match-form");
+    forms.forEach(form => {
+        form.submit();  // Submit each match form
+    });
+});
+
 </script>
 {% endblock %}
