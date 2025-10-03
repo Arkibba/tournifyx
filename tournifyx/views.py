@@ -1,21 +1,23 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import *
 from django.contrib.auth.decorators import login_required
-from .forms import TournamentForm, JoinTournamentForm, PlayerForm, PublicTournamentJoinForm
-import secrets
-import string
-import random
-from .utils import generate_knockout_fixtures, generate_league_fixtures
-import itertools
-from django.http import HttpResponseForbidden
-from django.core.cache import cache
-
-from .models import Match, Player, PointTable, Tournament
 from django.views.decorators.http import require_POST
+from django.core.cache import cache
+from django.db import models
+
+import itertools
+import random
+import string
+import secrets
+
+from .models import *
+from .forms import TournamentForm, JoinTournamentForm, PlayerForm, PublicTournamentJoinForm
+from .utils import generate_knockout_fixtures, generate_league_fixtures
+
+
 @login_required
 def join_public_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id, is_public=True)

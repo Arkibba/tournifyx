@@ -30,7 +30,8 @@ urlpatterns = [
    path('admin/', admin.site.urls),
    path('host-tournament/', views.host_tournament, name='host_tournament'),
    path('join-tournament/', views.join_tournament, name='join_tournament'),
-   path('tournament-dashboard/<int:tournament_id>/', views.tournament_dashboard, name='tournament_dashboard'),
+   path('tournament/<int:tournament_id>/', views.tournament_dashboard, name='tournament_dashboard'),
+   #path('tournament/<int:tournament_id>/add-participant/', views.add_participant, name='add_participant'),
    path('user-tournaments/', views.user_tournaments, name='user_tournaments'),
    path('update-tournament/<int:tournament_id>/', views.update_tournament, name='update_tournament'),
    path('about/', views.about, name='about'),
@@ -38,7 +39,7 @@ urlpatterns = [
    path('public-tournaments/', views.public_tournaments, name='public_tournaments'),
    path('public-tournaments-link/', views.public_tournaments, name='public_tournaments_link'),
    path('join-public-tournament/<int:tournament_id>/', views.join_public_tournament, name='join_public_tournament'),
-   path('update-match-result/<int:match_id>/', views.update_match_result, name='update_match_result'),
+   path('match/<int:match_id>/update/', views.update_match_result, name='update_match_result'),
    #path('payment/success/<int:tournament_id>/', views.payment_success, name='payment_success'),
    #path('payment/cancel/<int:tournament_id>/', views.payment_cancel, name='payment_cancel'),
    
