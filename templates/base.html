@@ -25,17 +25,31 @@
 
 <!-- Navigation Bar -->
 <header>
-  <nav class="fixed top-0 left-0 w-full z-50 py-3 px-0 flex justify-center items-center bg-transparent">
-    <!-- Left Side - Logo & Brand (orange pill background, shifted right) -->
-    <div class="absolute left-8 flex items-center space-x-3">
-  <a href="{% url 'home' %}" class="flex items-center space-x-3 text-white bg-orange-700/40 px-3 py-2 rounded-full shadow-md float-on-hover" style="transform: translateX(calc(288px - 2in));">
-        <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-10 h-10">
-        <span class="text-2xl font-bold">TournifyX</span>
-      </a>
-    </div>
+  <nav class="fixed top-0 left-0 w-full z-50 py-3 px-4 bg-transparent">
+    <!-- Container for navbar content -->
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- Left: Logo & Brand -->
+      <div class="flex items-center space-x-3">
+        <a href="{% url 'home' %}" class="flex items-center space-x-3 text-white bg-orange-700/40 px-3 py-2 rounded-full shadow-md float-on-hover">
+          <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-10 h-10">
+          <span class="hidden sm:inline text-lg md:text-2xl font-bold">TournifyX</span>
+        </a>
+      </div>
 
-    <!-- Right-aligned Navigation Links (normal top position) -->
-  <div class="flex gap-5 items-center bg-orange-700/40 rounded-xl px-6 py-2 shadow-md ml-auto" style="transform: translateX(-4in);">
+      <!-- Mobile hamburger (shown on small screens) -->
+      <div class="sm:hidden">
+        <button id="navToggle" aria-label="Toggle navigation" class="text-white bg-orange-700/40 p-2 rounded-lg focus:outline-none">
+          <svg id="navOpenIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg id="navCloseIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right: Navigation Links -->
+      <div id="navLinks" class="hidden sm:flex gap-5 items-center bg-orange-700/40 rounded-xl px-4 py-2 shadow-md">
       <a href="{% url 'home' %}" class="flex flex-col items-center group float-on-hover">
         <i class="fa-solid fa-house text-white text-xl group-hover:text-orange-300 transition"></i>
         <span class="text-xs text-white opacity-80 group-hover:opacity-100">Home</span>
@@ -69,8 +83,32 @@
           <span class="text-xs text-white opacity-80 group-hover:opacity-100">Register</span>
         </a>
       {% endif %}
+      </div>
     </div>
   </nav>
+
+  <script>
+    // Simple navbar toggle for small screens
+    (function(){
+      const btn = document.getElementById('navToggle');
+      const links = document.getElementById('navLinks');
+      const openIcon = document.getElementById('navOpenIcon');
+      const closeIcon = document.getElementById('navCloseIcon');
+      if (!btn || !links) return;
+      btn.addEventListener('click', () => {
+        const isHidden = links.classList.contains('hidden');
+        if (isHidden) {
+          links.classList.remove('hidden');
+          closeIcon.classList.remove('hidden');
+          openIcon.classList.add('hidden');
+        } else {
+          links.classList.add('hidden');
+          closeIcon.classList.add('hidden');
+          openIcon.classList.remove('hidden');
+        }
+      });
+    })();
+  </script>
 </header>
 
 <!-- Content Block - Each page controls everything below the navbar -->

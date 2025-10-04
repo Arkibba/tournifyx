@@ -11,12 +11,12 @@
   style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
 ></div>
 
-<div class="min-h-screen flex flex-col items-center py-10 relative z-10">
+<div class="min-h-screen flex flex-col items-center py-8 px-4 relative z-10">
  <!-- Logo -->
- <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 mb-6">
+ <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-24 sm:w-32 h-24 sm:h-32 mb-6">
 
 
- <div class="w-full max-w-4xl bg-black text-white rounded-2xl shadow-2xl p-8 backdrop-blur-md border border-gray-700">
+ <div class="w-full max-w-4xl sm:max-w-3xl md:max-w-4xl bg-black text-white rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-md border border-gray-700">
    <h2 class="text-3xl font-bold mb-6 text-center">Host a New Tournament</h2>
 
 
@@ -72,8 +72,8 @@
 
 <!-- Modal -->
 {% if tournament_code %}
-<div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80">
- <div class="relative bg-gray-900 text-white rounded-lg shadow-lg p-6 w-96 border border-gray-700">
+<div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 px-4">
+ <div class="relative bg-gray-900 text-white rounded-lg shadow-lg p-6 w-full max-w-sm sm:max-w-md border border-gray-700">
    <!-- Close Icon -->
    <button id="closeModal" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold">
      &times;

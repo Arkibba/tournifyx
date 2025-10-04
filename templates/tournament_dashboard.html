@@ -8,7 +8,8 @@
     style="background-image: url('{% static 'images/bg2.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
 ></div>
 
-<div class="max-w-6xl mx-auto mt-10 p-8 bg-gray-800 bg-opacity-90 shadow-lg rounded-lg text-gray-100 relative z-10">
+<div class="px-4">
+    <div class="max-w-6xl mx-auto mt-6 sm:mt-10 p-4 sm:p-8 bg-gray-800 bg-opacity-90 shadow-lg rounded-lg text-gray-100 relative z-10">
    <!-- Logo and Tournament Header -->
    <div class="text-center mb-8">
        <img src="/static/images/logo.png" alt="Tournament Logo" class="mx-auto w-32 h-32 mb-4">
@@ -155,7 +156,8 @@
     <!-- Point Table Section -->
     <div class="mt-10">
         <h2 class="text-2xl font-semibold text-gray-200 mb-4">Point Table</h2>
-        <table class="min-w-full bg-gray-900 bg-opacity-80 rounded-lg overflow-hidden">
+            <div class="overflow-x-auto rounded-lg bg-gray-900 bg-opacity-80">
+                <table class="min-w-full">
             <thead>
                 <tr>
                     <th class="px-4 py-2">Player</th>
@@ -180,8 +182,8 @@
                 <tr><td colspan="6" class="px-4 py-2 text-gray-400">No point table data yet.</td></tr>
                 {% endfor %}
             </tbody>
-        </table>
-    </div>
+                </table>
+            </div>
 </div>
 
 

@@ -9,8 +9,8 @@
     style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
 ></div>
 
-<div class="min-h-screen flex items-center justify-center relative z-10">
-    <div id="public-tournaments-panel" class="max-w-4xl w-full bg-black bg-opacity-70 rounded-lg shadow-lg p-8 fade-in">
+<div class="min-h-screen flex items-center justify-center relative z-10 px-4">
+    <div id="public-tournaments-panel" class="w-full max-w-4xl sm:max-w-3xl md:max-w-4xl bg-black bg-opacity-70 rounded-lg shadow-lg p-6 sm:p-8 fade-in">
         <h1 class="text-3xl font-bold text-orange-500 mb-6 text-center">Public Tournaments</h1>
         {% if tournaments %}
             <div class="space-y-6">

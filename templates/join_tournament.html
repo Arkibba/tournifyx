@@ -9,18 +9,18 @@
   style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
 ></div>
 
-<div class="min-h-screen flex items-center justify-center relative z-10">
-  <div class="flex bg-white/10 backdrop-blur-md rounded-lg shadow-lg overflow-hidden w-full max-w-7xl h-[800px]">
+<div class="min-h-screen flex items-center justify-center relative z-10 px-4 py-8">
+  <div class="flex flex-col md:flex-row bg-white/10 backdrop-blur-md rounded-lg shadow-lg overflow-hidden w-full max-w-7xl">
     <!-- Left Panel (Image) -->
-    <div class="w-1/2 hidden md:block">
+    <div class="w-full md:w-1/2 hidden md:block">
       <img src="{% static 'images/lp2.jpeg' %}" alt="Join Tournament Image" class="object-cover w-full h-full">
     </div>
     <!-- Right Panel (Form + Content) -->
-    <div class="relative w-full md:w-1/2 p-10 flex flex-col justify-center items-center bg-black/50 overflow-y-auto">
+  <div class="relative w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center items-center bg-black/50 overflow-y-auto">
       <!-- Logo Top Middle -->
       <img src="{% static 'images/logo.png' %}" alt="Logo" class="absolute top-8 left-1/2 -translate-x-1/2 w-24 md:w-32 mb-12">
 
-      <div class="flex-1 flex flex-col justify-center items-center w-full mt-40">
+  <div class="flex-1 flex flex-col justify-center items-center w-full mt-24 md:mt-40">
         {% if messages %}
           <div class="mb-4 w-full">
             {% for message in messages %}
@@ -35,17 +35,17 @@
             {% csrf_token %}
             <div class="w-full flex flex-col items-center">
               <label for="id_name" class="text-lg font-semibold text-white mb-2">Name</label>
-              {{ form.name|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
+              {{ form.name|add_class:"w-full sm:w-80 md:w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
             </div>
             <div class="w-full flex flex-col items-center">
               <label for="id_ign" class="text-lg font-semibold text-white mb-2">In-Game Name</label>
-              {{ form.ign|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
+              {{ form.ign|add_class:"w-full sm:w-80 md:w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
             </div>
             <div class="w-full flex flex-col items-center">
               <label for="id_contact_number" class="text-lg font-semibold text-white mb-2">Contact Number</label>
-              {{ form.contact_number|add_class:"w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
+              {{ form.contact_number|add_class:"w-full sm:w-80 md:w-64 p-3 rounded-lg bg-gray-900 text-white border-2 border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-600 text-center text-xl tracking-widest" }}
             </div>
-            <button type="submit" class="w-64 py-3 rounded-lg bg-orange-500 text-white font-bold text-lg shadow hover:bg-orange-600 transition mt-8">Join Tournament</button>
+            <button type="submit" class="w-full sm:w-64 py-3 rounded-lg bg-orange-500 text-white font-bold text-lg shadow hover:bg-orange-600 transition mt-8">Join Tournament</button>
           </form>
         {% else %}
           <h2 class="text-3xl font-extrabold mb-4 text-white text-center">Join by Code</h2>
