@@ -226,13 +226,34 @@ document.querySelectorAll('form').forEach(function(form) {
         winnerSelect.addEventListener('change', updateState);
     }
 });
-// Update All button logic
-document.getElementById("updateAllBtn")?.addEventListener("click", function () {
-    const forms = document.querySelectorAll(".match-form");
-    forms.forEach(form => {
-        form.submit();  // Submit each match form
-    });
-});
+document.addEventListener("DOMContentLoaded", function () {
+    const updateAllBtn = document.getElementById("updateAllBtn");
 
+    if (updateAllBtn) {
+        updateAllBtn.addEventListener("click", async function () {
+            updateAllBtn.disabled = true;
+            updateAllBtn.textContent = "Updating...";
+
+            const forms = document.querySelectorAll(".match-form");
+
+            for (const form of forms) {
+                const formData = new FormData(form);
+
+                // Use fetch() to send each form individually
+                await fetch(form.action, {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+
+                // Small delay so Django can process properly
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            updateAllBtn.textContent = "All Updated ✅";
+            setTimeout(() => window.location.reload(), 1000);
+        });
+    }
+});
 </script>
 {% endblock %}
