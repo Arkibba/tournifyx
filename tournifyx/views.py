@@ -253,6 +253,8 @@ def update_points_for_match(match, prev_result=None):
         pt.losses = 0
         pt.points = 0
         pt.save()
+
+    
     # Go through all matches and update stats
     for m in Match.objects.filter(tournament=tournament):
         # Only count as played if result is set (winner or draw)
@@ -387,6 +389,7 @@ def host_tournament(request):
                 tournament.delete()  # Rollback tournament creation
                 return redirect('host_tournament')
 
+            
             # If knockout, ensure participants are exactly a power of two (2,4,8,16...)
             if tournament.match_type == 'knockout':
                 count = len([n for n in player_names if n.strip()])
@@ -420,6 +423,7 @@ def host_tournament(request):
                         round_number=1,
                         scheduled_time=None
                     )
+                    
             else:
                 fixture_pairs = generate_league_fixtures([p.name for p in player_objs])
                 # Map names back to Player objects
@@ -486,6 +490,7 @@ def join_tournament(request):
                         tournament=tournament,
                         user_profile=user_profile
                     )
+                    
                     return redirect('tournament_dashboard', tournament_id=tournament.id)
             except Tournament.DoesNotExist:
                 messages.error(request, 'Invalid tournament code!')
@@ -495,6 +500,7 @@ def join_tournament(request):
         'form': form,
         'public_tournaments': public_tournaments
     })
+
 
 @login_required
 def tournament_dashboard(request, tournament_id):
