@@ -92,11 +92,13 @@ class PointTable(models.Model):
     draws = models.PositiveIntegerField(default=0)
     points = models.IntegerField(default=0)
 
+    
     class Meta:
         unique_together = ('tournament', 'player')
 
     def __str__(self):
         return f"{self.player.name} - {self.points} pts"
+
 
 
 class Match(models.Model):
