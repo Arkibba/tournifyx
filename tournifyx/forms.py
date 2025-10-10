@@ -9,7 +9,6 @@ class PublicTournamentJoinForm(forms.Form):
 
 
 
-
 class TournamentForm(forms.ModelForm):
     players = forms.CharField(
         widget=forms.Textarea(attrs={
@@ -70,8 +69,20 @@ class TournamentForm(forms.ModelForm):
         }
 
 
+
+
+
+
+
+
+
 class JoinTournamentForm(forms.Form):
    code = forms.CharField(max_length=20, label="Tournament Code", widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+
+
+
+
 
 
 class PlayerForm(forms.ModelForm):
