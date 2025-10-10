@@ -39,9 +39,57 @@
       }
       /* caret styling wrapper for custom select caret in templates */
       .relative .fa-caret-down { color: #cbd5e1; }
+      /* Standardized form & button styles */
+      .form-input {
+        display: inline-block;
+        background: rgba(15, 23, 42, 0.7);
+        color: #fff;
+        padding: .6rem .9rem;
+        border-radius: .75rem;
+        border: 1px solid rgba(249,115,22,0.12);
+        outline: none;
+        transition: box-shadow .15s ease, transform .12s ease;
+      }
+      .form-input:focus {
+        box-shadow: 0 0 0 4px rgba(249,115,22,0.12);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        padding: .6rem 1rem;
+        border-radius: .75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+        text-decoration: none;
+      }
+      .btn:active { transform: translateY(1px); }
+
+      .btn-primary {
+        background: #f97316; /* orange-500 */
+        color: #fff;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 6px 18px rgba(249,115,22,0.12);
+      }
+      .btn-primary:hover { background: #ea580c; }
+
+      .btn-secondary {
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+      /* Subtle global background for a classy dark look */
+      .site-bg {
+        background: radial-gradient(ellipse at 10% 10%, rgba(9,20,36,0.92) 0%, rgba(2,6,12,0.96) 45%), linear-gradient(180deg, rgba(3,7,18,0.85), rgba(2,4,8,1));
+        background-attachment: fixed;
+        background-size: cover;
+      }
     </style>
 </head>
-<body class="bg-transparent m-0 p-0">
+<body class="site-bg text-white m-0 p-0">
 
 <!-- Navigation Bar -->
 <header>

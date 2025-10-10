@@ -33,15 +33,9 @@
                                <form method="POST" class="mt-4 flex justify-between items-center">
                                    {% csrf_token %}
                                    <input type="hidden" name="tournament_id" value="{{ tournament.id }}">
-                                   <button type="submit" name="action" value="update" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                       Update
-                                   </button>
-                                   <a href="{% url 'tournament_dashboard' tournament.id %}" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition mx-4">
-                                       Dashboard
-                                   </a>
-                                   <button type="submit" name="action" value="delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                                       Delete
-                                   </button>
+                                   <button type="submit" name="action" value="update" class="btn btn-secondary">Update</button>
+                                   <a href="{% url 'tournament_dashboard' tournament.id %}" class="btn btn-primary mx-4">Dashboard</a>
+                                   <button type="submit" name="action" value="delete" class="btn btn-secondary">Delete</button>
                                </form>
                            </div>
                        {% endfor %}
@@ -62,9 +56,7 @@
                                <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
                                <p class="text-sm"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
                                <p class="text-sm"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
-                               <a href="{% url 'tournament_dashboard' tournament.id %}" class="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition inline-block">
-                                   View Dashboard
-                               </a>
+                               <a href="{% url 'tournament_dashboard' tournament.id %}" class="btn btn-primary mt-4 inline-block">View Dashboard</a>
                            </div>
                        {% endfor %}
                    </div>

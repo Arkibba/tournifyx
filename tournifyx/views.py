@@ -629,4 +629,40 @@ def about(request):
 @login_required(login_url='login')
 def public_tournaments(request):
     tournaments = Tournament.objects.filter(is_public=True, is_active=True)
-    return render(request, 'public_tournaments.html', {'tournaments': tournaments})
+
+    # Sort: soonest registration deadline, then most participants, then most recent
+    tournaments = tournaments.order_by(
+        'registration_deadline',
+        '-num_participants',
+        '-id'
+    )
+
+    # Search by name or description
+    q = request.GET.get('q', '').strip()
+    if q:
+        tournaments = tournaments.filter(
+            models.Q(name__icontains=q) | models.Q(description__icontains=q)
+        )
+
+    # Filter by category
+    category = request.GET.get('category', '').strip().lower()
+    if category:
+        tournaments = tournaments.filter(category__iexact=category)
+
+    # Filter by match_type
+    match_type = request.GET.get('match_type', '').strip().lower()
+    if match_type:
+        tournaments = tournaments.filter(match_type__iexact=match_type)
+
+    # Filter by free_only
+    free_only = request.GET.get('free_only')
+    if free_only:
+        tournaments = tournaments.filter(is_paid=False)
+
+    # Featured tournaments: top 2 by most recent or by participants
+    featured_tournaments = tournaments.order_by('-id')[:2]
+
+    return render(request, 'public_tournaments.html', {
+        'tournaments': tournaments,
+        'featured_tournaments': featured_tournaments,
+    })

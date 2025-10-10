@@ -28,16 +28,14 @@
                <!-- Name Field -->
                <div>
                    <label for="id_name" class="block text-sm font-medium text-gray-300">Name</label>
-                   <input type="text" name="name" id="id_name" value="{{ form.name.value }}"
-                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">
+                   <input type="text" name="name" id="id_name" value="{{ form.name.value }}" class="form-input w-full">
                </div>
 
 
                <!-- Description Field -->
                <div>
                    <label for="id_description" class="block text-sm font-medium text-gray-300">Description</label>
-                   <textarea name="description" id="id_description" rows="4"
-                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">{{ form.description.value }}</textarea>
+                   <textarea name="description" id="id_description" rows="4" class="form-input w-full">{{ form.description.value }}</textarea>
                </div>
 
 
@@ -51,8 +49,7 @@
                <!-- Number of Participants Field -->
                <div>
                    <label for="id_num_participants" class="block text-sm font-medium text-gray-300">Number of Participants</label>
-                   <input type="number" name="num_participants" id="id_num_participants" value="{{ form.num_participants.value }}"
-                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">
+                   <input type="number" name="num_participants" id="id_num_participants" value="{{ form.num_participants.value }}" class="form-input w-full">
                </div>
 
 
@@ -66,8 +63,7 @@
                <!-- Players Field -->
                <div>
                    <label for="id_players" class="block text-sm font-medium text-gray-300">Players</label>
-                   <textarea name="players" id="id_players" rows="5"
-                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">{{ form.players.value|default_if_none:"" }}</textarea>
+                   <textarea name="players" id="id_players" rows="5" class="form-input w-full">{{ form.players.value|default_if_none:"" }}</textarea>
                </div>
 
 
@@ -81,8 +77,7 @@
                <!-- Price Field -->
                <div>
                    <label for="id_price" class="block text-sm font-medium text-gray-300">Price</label>
-                   <input type="number" name="price" id="id_price" value="{{ form.price.value }}"
-                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500">
+                   <input type="number" name="price" id="id_price" value="{{ form.price.value }}" class="form-input w-full">
                </div>
 
 
@@ -107,17 +102,14 @@
                <!-- Show tournament code (read-only) -->
                <div>
                    <label class="block text-sm font-medium text-gray-300">Tournament Code</label>
-                   <input type="text" value="{{ tournament.code }}" readonly
-                       class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600">
+                   <input type="text" value="{{ tournament.code }}" readonly class="form-input w-full">
                </div>
            </div>
 
 
            <!-- Save Changes Button -->
            <div class="flex justify-center">
-               <button type="submit" class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition duration-300">
-                   Save Changes
-               </button>
+               <button type="submit" class="btn btn-primary">Save Changes</button>
            </div>
        </form>
 
@@ -139,7 +131,7 @@
 
        <!-- Go to Dashboard Button -->
        <div class="mt-8 flex justify-center">
-           <a href="{% url 'tournament_dashboard' tournament.id %}" class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg shadow">Go to Dashboard</a>
+           <a href="{% url 'tournament_dashboard' tournament.id %}" class="btn btn-primary">Go to Dashboard</a>
        </div>
 
        <!-- Fixtures Section -->

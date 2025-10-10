@@ -30,21 +30,21 @@
       </div>
     {% endif %}
      {{ form.name.label_tag }}
-  {{ form.name|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
+  {{ form.name|add_class:"form-input w-full" }}
   {% if form.name.errors %}<div class="text-red-400 text-sm mt-1">{{ form.name.errors.0 }}</div>{% endif %}
      {{ form.description.label_tag }}
-  {{ form.description|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
+  {{ form.description|add_class:"form-input w-full" }}
      {{ form.category.label_tag }}
      <div class="relative">
-       {{ form.category|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300 appearance-none pr-10" }}
+  {{ form.category|add_class:"form-input w-full appearance-none pr-10" }}
        <span class="absolute inset-y-0 right-3 flex items-center text-gray-300 pointer-events-none"><i class="fa fa-caret-down"></i></span>
      </div>
      {{ form.num_participants.label_tag }}
-  {{ form.num_participants|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
+  {{ form.num_participants|add_class:"form-input w-full" }}
   {% if form.num_participants.errors %}<div class="text-red-400 text-sm mt-1">{{ form.num_participants.errors.0 }}</div>{% endif %}
      {{ form.match_type.label_tag }}
      <div class="relative">
-       {{ form.match_type|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300 appearance-none pr-10" }}
+  {{ form.match_type|add_class:"form-input w-full appearance-none pr-10" }}
        <span class="absolute inset-y-0 right-3 flex items-center text-gray-300 pointer-events-none"><i class="fa fa-caret-down"></i></span>
      </div>
 
@@ -56,7 +56,7 @@
    </div>
    <div>
      {{ form.price.label_tag }}
-  {{ form.price|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
+  {{ form.price|add_class:"form-input w-full" }}
    </div>
    <div>
      {{ form.is_public.label_tag }}
@@ -70,16 +70,14 @@
 
    <div>
      {{ form.registration_deadline.label_tag }}
-  {{ form.registration_deadline|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
+  {{ form.registration_deadline|add_class:"form-input w-full" }}
    </div>
 
    {{ form.players.label_tag }}
-  {{ form.players|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
+  {{ form.players|add_class:"form-input w-full" }}
 
 
-     <button type="submit" class="w-full py-3 px-6 rounded bg-orange-600 hover:bg-orange-700 transition font-semibold text-white shadow-md">
-       Create Tournament
-     </button>
+     <button type="submit" class="btn btn-primary w-full">Create Tournament</button>
    </form>
  </div>
 </div>
@@ -98,12 +96,8 @@
    <p class="mb-4 text-center">Here is your unique code:</p>
    <div class="text-center text-2xl font-bold text-orange-500">{{ tournament_code }}</div>
    <div class="mt-6 flex justify-center space-x-4">
-     <button id="closeModalButton" class="py-2 px-4 bg-gray-700 text-white rounded hover:bg-gray-800 transition">
-       Close
-     </button>
-     <a href="{% url 'tournament_dashboard' tournament_id=tournament.id %}" class="py-2 px-4 bg-orange-600 text-white rounded hover:bg-orange-700 transition">
-       Go to Dashboard
-     </a>
+     <button id="closeModalButton" class="btn btn-secondary">Close</button>
+     <a href="{% url 'tournament_dashboard' tournament_id=tournament.id %}" class="btn btn-primary">Go to Dashboard</a>
    </div>
  </div>
 </div>

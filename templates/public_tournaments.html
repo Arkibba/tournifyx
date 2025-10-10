@@ -1,51 +1,109 @@
 <!-- filepath: c:\Users\RYZEN\PycharmProjects\tournifyx\templates\public_tournaments.html -->
 {% extends 'base.html' %}
+{% load tz %}
 {% load static %}
 {% block title %}Public Tournaments{% endblock %}
 {% block content %}
-<!-- Full Screen Background Image -->
-<div 
-    class="fixed inset-0 w-full h-full z-0"
-    style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
-></div>
-
-<div class="min-h-screen flex items-center justify-center relative z-10 px-4">
-    <div id="public-tournaments-panel" class="w-full max-w-4xl sm:max-w-3xl md:max-w-4xl bg-black bg-opacity-70 rounded-lg shadow-lg p-6 sm:p-8 fade-in">
-        <h1 class="text-3xl font-bold text-orange-500 mb-6 text-center">Public Tournaments</h1>
-        {% if tournaments %}
-            <div class="space-y-6">
-                {% for tournament in tournaments %}
-                    <div class="bg-black bg-opacity-70 rounded-lg shadow-md p-6 hover:shadow-xl transition">
-                        <h3 class="text-xl font-bold mb-2 text-white">{{ tournament.name }}</h3>
-                        <p class="text-gray-300 mb-2">{{ tournament.description }}</p>
-                        <p class="text-sm text-orange-200"><strong>Category:</strong> {{ tournament.get_category_display }}</p>
-                        <p class="text-sm text-orange-200"><strong>Match Type:</strong> {{ tournament.get_match_type_display }}</p>
-                        <a href="{% url 'join_public_tournament' tournament.id %}" class="mt-4 px-4 py-2 bg-white text-orange-600 font-bold rounded-lg shadow hover:bg-orange-100 transition inline-block">
-                            Join Public Tournament
-                        </a>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="text-center text-gray-400">No public tournaments available.</p>
-        {% endif %}
+{% now 'U' as now_ts %}
+<!-- Background image (fixed, covers viewport) -->
+<div class="fixed inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static "images/bg.png" %}');"></div>
+<!-- subtle overlay to improve contrast -->
+<div class="fixed inset-0 z-0 bg-black/60" aria-hidden="true"></div>
+<div class="min-h-screen py-8 px-4 relative z-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-orange-400">Public Tournaments</h1>
+      <p class="text-gray-500 mt-1">Discover public tournaments you can join now.</p>
     </div>
-</div>
-<script>
-    // Inject fade-in CSS dynamically
-    const style = document.createElement('style');
-    style.textContent = `
-        .fade-in {
-            opacity: 0;
-            transition: opacity 0.7s ease;
-        }
-        .fade-in.show {
-            opacity: 1;
-        }
-    `;
-    document.head.appendChild(style);
 
-    // Fade in immediately
-    document.getElementById('public-tournaments-panel').classList.add('show');
+    <form method="get" class="flex flex-col sm:flex-row items-center gap-3 justify-center mb-6">
+      <input name="q" placeholder="Search tournaments..." value="{{ request.GET.q|default_if_none:'' }}" class="form-input w-full sm:w-80" aria-label="Search tournaments">
+      <select name="category" class="form-input">
+        <option value="">All categories</option>
+        <option value="football" {% if request.GET.category == 'football' %}selected{% endif %}>Football</option>
+        <option value="valorant" {% if request.GET.category == 'valorant' %}selected{% endif %}>Valorant</option>
+        <option value="cricket" {% if request.GET.category == 'cricket' %}selected{% endif %}>Cricket</option>
+        <option value="basketball" {% if request.GET.category == 'basketball' %}selected{% endif %}>Basketball</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% if tournaments %}
+        {% for t in tournaments %}
+          <article class="bg-white/5 rounded-xl p-5 sm:p-8 shadow-sm overflow-hidden">
+            <div class="flex justify-between items-start gap-3">
+              <div class="min-w-0">
+                <h3 class="text-lg sm:text-xl font-bold text-white truncate">{{ t.name }}</h3>
+                <p class="text-sm sm:text-base text-gray-300 mt-1 truncate">{{ t.description|truncatechars:120 }}</p>
+                <div class="mt-3 flex flex-wrap gap-2 text-xs sm:text-sm">
+                  <span class="bg-gray-800/60 px-2 py-1 rounded font-semibold">{{ t.category|title }}</span>
+                  <span class="bg-gray-800/60 px-2 py-1 rounded">{{ t.match_type }}</span>
+                  <span class="bg-gray-800/60 px-2 py-1 rounded">{{ t.num_participants }} / {{ t.capacity }}</span>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-3">
+                {% if t.is_paid %}
+                  <div class="text-sm text-orange-400 font-semibold">Paid • ${{ t.price }}</div>
+                {% else %}
+                  <div class="text-sm text-green-400 font-semibold">Free</div>
+                {% endif %}
+                <div class="flex gap-2">
+                  <a href="{% url 'join_public_tournament' t.id %}" class="btn btn-primary">Join</a>
+                  <button type="button" data-code="{{ t.code }}" class="btn btn-secondary share-btn">Share</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      {% else %}
+        <div class="col-span-full text-center text-gray-400 py-12">No public tournaments available.</div>
+      {% endif %}
+    </div>
+
+    <div class="mt-6 text-center">
+      {% if page_obj %}
+        <div class="inline-flex items-center gap-3">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Previous</a>
+          {% endif %}
+          <span class="text-sm text-gray-300">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Next</a>
+          {% endif %}
+        </div>
+      {% else %}
+        <button class="btn btn-secondary">Load more</button>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<!-- share modal -->
+<div id="shareModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-60">
+  <div class="bg-gray-900 text-white rounded-lg p-4 w-full max-w-xs">
+    <button id="closeShareModal" class="float-right text-gray-400">&times;</button>
+    <h4 class="font-bold text-orange-400 mb-2">Tournament Code</h4>
+    <div id="shareCode" class="font-mono text-lg bg-gray-800 rounded p-2 mb-3"></div>
+    <button id="copyShareCode" class="btn btn-primary w-full">Copy Code</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const modal = document.getElementById('shareModal');
+  const codeEl = document.getElementById('shareCode');
+  document.querySelectorAll('.share-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      codeEl.textContent = b.dataset.code || '';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    });
+  });
+  document.getElementById('closeShareModal').addEventListener('click', ()=>{ modal.classList.add('hidden'); modal.classList.remove('flex'); });
+  document.getElementById('copyShareCode').addEventListener('click', ()=>{ navigator.clipboard.writeText(codeEl.textContent); });
+});
 </script>
+
 {% endblock %}
