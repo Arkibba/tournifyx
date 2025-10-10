@@ -69,6 +69,7 @@ class TournamentParticipant(models.Model):
     def _str_(self):
         return f"{self.user_profile.user.username} in {self.tournament.name}"
 
+
 # Player model managed by host inside a tournament
 class Player(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
@@ -78,6 +79,7 @@ class Player(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.tournament.name}"
+
 
 
 # PointTable model to track points for each player/team in a tournament
@@ -105,6 +107,7 @@ class Match(models.Model):
         ('SEMI', 'Semifinal'),
         ('FINAL', 'Final'),
     ]
+    
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_player1')
     player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_player2', null=True, blank=True)
