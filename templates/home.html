@@ -76,6 +76,7 @@
 </style>
 {% endblock %}
 
+
 {% block extra_debug %}
 <script>
   (function(){
@@ -139,6 +140,7 @@
   <!-- Semi-opaque overlay that applies only to the video area -->
   <div id="videoOverlay" class="absolute inset-0 bg-black/50 pointer-events-none transition-opacity duration-500"></div>
 
+  
   <!-- Play overlay: hidden by default, shown if autoplay is blocked or user taps to start -->
   <div id="videoPlayOverlay" class="hidden absolute inset-0 z-40 flex items-center justify-center pointer-events-auto">
     <button id="playBtn" class="play-button text-white flex items-center justify-center shadow-lg">
@@ -146,12 +148,14 @@
     </button>
   </div>
 </div>
+
 <!-- Background image that will fade in after the video ends -->
 <div id="heroBg" class="fixed top-0 left-0 w-full h-full z-0 opacity-0 transition-opacity duration-700 ease-out bg-center bg-cover" style="background-image: url('{% static 'images/bg.png' %}');"></div>
 <!-- Right-side long image (hidden initially, shows on video end) -->
 <div id="sideLongImage" aria-hidden="true" class="hidden md:block">
   <img src="{% static 'images/omen.png' %}" alt="" class="w-full h-full object-cover">
 </div>
+
 
 <!-- Left-side floating image for leaderboard area (hidden on small screens). Uses Tailwind for sizing and translation. -->
 <div id="leftFloatImage" aria-hidden="true" class="hidden md:block fixed top-[6vh] left-0 z-50 pointer-events-none transform md:-translate-x-[32rem] lg:-translate-x-[40rem] opacity-0 transition-transform transition-opacity duration-700 ease-out">
@@ -163,6 +167,7 @@
 
 <!-- Container for floating X elements (high z so visible above static backgrounds) -->
 <div id="floatingXs" class="fixed inset-0 z-60 pointer-events-none"></div>
+
 
 <!-- Floating Nav (top-right) -->
 <div class="fixed top-0 left-0 w-full z-20 pointer-events-none">
@@ -178,11 +183,6 @@
 
 
 
-
-
-
-
-
 <div class="relative z-20 h-screen flex flex-col justify-between">
   <!-- Left-aligned: Logo (repositionable), Heading, and Buttons -->
   <div class="absolute top-1/2 left-4 sm:left-12 md:left-[7vw] -translate-y-1/2 z-30 flex flex-col items-start max-w-[86vw] md:max-w-none">
@@ -193,12 +193,16 @@
     <h1 class="text-white text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold uppercase tracking-widest leading-tight drop-shadow-lg mb-8 text-left">
       WELCOME TO<br>TOURNIFYX
     </h1>
+
+    
     <div class="flex gap-6">
       <a href="{% url 'join_tournament' %}" class="bg-white/20 text-white border-2 border-white/30 rounded-full text-lg font-bold px-8 py-3 shadow-md hover:bg-orange-600 hover:text-white hover:border-orange-600 transition backdrop-blur-sm float-on-hover">Join a tournament</a>
       <a href="{% url 'host_tournament' %}" class="bg-white/20 text-white border-2 border-white/30 rounded-full text-lg font-bold px-8 py-3 shadow-md hover:bg-orange-600 hover:text-white hover:border-orange-600 transition backdrop-blur-sm float-on-hover">Create a tournament</a>
     </div>
   </div>
 
+
+  
   <!-- Bottom-Center: Scroll Indicator -->
   <div class="fixed left-1/2 bottom-2 md:bottom-4 -translate-x-1/2 z-40 flex flex-col items-center opacity-85">
     <a href="#esports-games">
@@ -206,6 +210,8 @@
     </a>
   </div>
 </div>
+
+
 
 <!-- Additional full-screen background section revealed when scrolling down -->
 <section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/bg2.png' %}');">
@@ -247,6 +253,7 @@
           </table>
         </div>
       </div>
+      
       <!-- Team Leaderboard -->
       <div class="bg-black/60 rounded-2xl shadow-lg p-6 flex flex-col">
         <h3 class="text-2xl font-bold text-orange-400 mb-4 text-center">Top Teams</h3>
@@ -264,6 +271,7 @@
               </tr>
             </thead>
             <tbody>
+              
               {% for team in top_teams %}
               <tr class="border-b border-gray-800 hover:bg-orange-900/20 transition">
                 <td class="py-2 px-3 font-bold">{{ forloop.counter }}</td>
