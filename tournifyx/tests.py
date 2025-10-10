@@ -55,22 +55,26 @@ class KnockoutProgressionTests(TestCase):
 		round2 = Match.objects.filter(tournament=t, round_number=2)
 		self.assertEqual(round2.count(), 2)
 
+		
 		# Set winners for round 2
 		for m in round2:
 			m.winner = m.player1
 			m.save()
 
+		
 		# Generate final
 		generate_next_knockout_round(t)
 		round3 = Match.objects.filter(tournament=t, round_number=3)
 		self.assertEqual(round3.count(), 1)
 
+		
 		# Set final winner and generate next (should detect tournament winner)
 		final = round3.first()
 		final.winner = final.player1
 		final.save()
 		generate_next_knockout_round(t)
 
+		
 		# After final, no further matches should be created and winner exists
 		all_winners = Match.objects.filter(tournament=t, winner__isnull=False).values_list('winner__name', flat=True)
 		self.assertIn(final.winner.name, list(all_winners))
@@ -87,6 +91,7 @@ class KnockoutProgressionTests(TestCase):
 			code='BAD01',
 			is_active=True
 		)
+		
 		# Add 3 players
 		for i in range(3):
 			Player.objects.create(tournament=t, name=f'B{i+1}', added_by=self.host)
@@ -96,6 +101,7 @@ class KnockoutProgressionTests(TestCase):
 		# No matches should be created
 		self.assertEqual(Match.objects.filter(tournament=t).count(), 0)
 
+	
 	def test_host_permission_enforced(self):
 		# Create a knockout tournament and a match, then attempt to update as non-host
 		t = Tournament.objects.create(
@@ -108,6 +114,7 @@ class KnockoutProgressionTests(TestCase):
 			code='PERM01',
 			is_active=True
 		)
+		
 		p1 = Player.objects.create(tournament=t, name='A', added_by=self.host)
 		p2 = Player.objects.create(tournament=t, name='B', added_by=self.host)
 		m = Match.objects.create(tournament=t, player1=p1, player2=p2, round_number=1)
@@ -131,6 +138,7 @@ class KnockoutProgressionTests(TestCase):
 			code='NOP01',
 			is_active=True
 		)
+		
 		p1 = Player.objects.create(tournament=t, name='A', added_by=self.host)
 		p2 = Player.objects.create(tournament=t, name='B', added_by=self.host)
 		m = Match.objects.create(tournament=t, player1=p1, player2=p2, round_number=1)
@@ -141,6 +149,7 @@ class KnockoutProgressionTests(TestCase):
 		# There should be no PointTable entries for knockout tournament
 		self.assertEqual(PointTable.objects.filter(tournament=t).count(), 0)
 
+	
 	def test_host_can_update_final(self):
 		# Create tournament, create fixtures, progress to final, then host updates final via view
 		t = Tournament.objects.create(
@@ -153,6 +162,7 @@ class KnockoutProgressionTests(TestCase):
 			code='FIN01',
 			is_active=True
 		)
+		
 		p = [Player.objects.create(tournament=t, name=f'P{i+1}', added_by=self.host) for i in range(4)]
 		from .utils import create_fixtures_for_tournament, generate_next_knockout_round
 		create_fixtures_for_tournament(t)
@@ -161,12 +171,14 @@ class KnockoutProgressionTests(TestCase):
 		for m in r1:
 			m.winner = m.player1
 			m.save()
+			
 		generate_next_knockout_round(t)
 		# set winners for semi (round 2)
 		r2 = Match.objects.filter(tournament=t, round_number=2)
 		for m in r2:
 			m.winner = m.player1
 			m.save()
+			
 		generate_next_knockout_round(t)
 		final = Match.objects.filter(tournament=t).order_by('-round_number').first()
 		# Host posts to update final
