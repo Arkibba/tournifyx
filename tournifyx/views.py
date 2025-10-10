@@ -542,6 +542,7 @@ def user_tournaments(request):
     hosted_tournaments = []
     if host_profile:
         seen_names = set()
+        
         for t in Tournament.objects.filter(created_by=host_profile).order_by('-id'):
             if t.name not in seen_names:
                 hosted_tournaments.append(t)
@@ -550,6 +551,7 @@ def user_tournaments(request):
         tournamentparticipant__user_profile=user_profile
     ).exclude(created_by=host_profile).distinct()
 
+    
     if request.method == 'POST':
         tournament_id = request.POST.get('tournament_id')
         action = request.POST.get('action')
