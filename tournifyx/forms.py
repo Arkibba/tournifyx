@@ -28,6 +28,16 @@ class TournamentForm(forms.ModelForm):
             players = cleaned_data.get('players')
             if not is_public and not players:
                 self.add_error('players', 'Players are required for non-public tournaments.')
+        # Enforce power-of-two participant count for knockout tournaments
+        match_type = cleaned_data.get('match_type')
+        num_participants = cleaned_data.get('num_participants')
+        if match_type == 'knockout' and num_participants:
+            try:
+                n = int(num_participants)
+                if n < 2 or (n & (n - 1)) != 0:
+                    self.add_error('num_participants', 'Invalid participant number — knockout tournaments must use a power of two (2, 4, 8, 16, ...).')
+            except Exception:
+                self.add_error('num_participants', 'Invalid participant number.')
         return cleaned_data
     is_paid = forms.BooleanField(required=False, label="Paid Tournament")
     price = forms.DecimalField(required=False, min_value=0, label="Price to Join", initial=0.00)
