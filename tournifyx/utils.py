@@ -105,6 +105,7 @@ def generate_next_knockout_round(tournament):
     """
     Creates the next knockout round once the current round is complete.
     """
+    
     max_round = Match.objects.filter(tournament=tournament).aggregate(models.Max('round_number'))['round_number__max']
     if not max_round:
         print("[Knockout] No existing rounds found.")
@@ -112,6 +113,7 @@ def generate_next_knockout_round(tournament):
 
     current_round_matches = Match.objects.filter(tournament=tournament, round_number=max_round)
 
+    
     # Wait until all matches in current round have winners
     if current_round_matches.filter(winner__isnull=True).exists():
         print("[Knockout] Current round is not finished yet.")
@@ -129,6 +131,7 @@ def generate_next_knockout_round(tournament):
     random.shuffle(winners)
     next_round = max_round + 1
 
+    
     # Pair winners for next round
     for i in range(0, len(parent_winners), 2):
         p1_parent, p1 = parent_winners[i]
@@ -143,6 +146,7 @@ def generate_next_knockout_round(tournament):
                 parent_match1=p1_parent,
                 parent_match2=p2_parent
             )
+            
         else:
             # Bye case (shouldn't occur with 2^n) - attach parent
             Match.objects.create(
@@ -164,14 +168,17 @@ def propagate_result_change(changed_match):
         update the corresponding player slot (player1/player2) to changed_match.winner (or None),
         clear child.winner and child.is_draw, then recursively clear their descendants.
     """
+    
     # find direct children
     children = Match.objects.filter(models.Q(parent_match1=changed_match) | models.Q(parent_match2=changed_match))
     for child in children:
         # Determine which slot to update
         updated = False
+        
         if child.parent_match1_id == changed_match.id:
             child.player1 = changed_match.winner if changed_match.winner else None
             updated = True
+            
         if child.parent_match2_id == changed_match.id:
             child.player2 = changed_match.winner if changed_match.winner else None
             updated = True
