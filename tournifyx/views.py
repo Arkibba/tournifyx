@@ -40,6 +40,8 @@ def build_knockout_stages(tournament):
     return ordered
 
 
+
+
 def tournament_knockout_json(request, tournament_id):
     """Return knockout stages as JSON for JS bracket rendering."""
     tournament = get_object_or_404(Tournament, id=tournament_id)
@@ -61,6 +63,8 @@ def tournament_knockout_json(request, tournament_id):
             })
         data.append({'label': label, 'matches': mlist})
     return JsonResponse({'stages': data})
+
+
 
 
 @login_required
