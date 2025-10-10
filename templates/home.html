@@ -121,6 +121,12 @@
 </script>
 {% endblock %}
 
+
+
+
+
+
+
 {% block content %}
 <!-- Background Video -->
 <div id="videoWrapper" class="fixed inset-0 z-0">
@@ -167,6 +173,15 @@
     </a>
   </div>
 </div>
+
+
+
+
+
+
+
+
+
 
 <div class="relative z-20 h-screen flex flex-col justify-between">
   <!-- Left-aligned: Logo (repositionable), Heading, and Buttons -->
@@ -270,6 +285,13 @@
   </div>
 </section>
 
+
+
+
+
+
+
+
 <!-- New section: Most Promising Esports Games -->
 <section id="esports-games" class="relative w-full min-h-screen bg-gray-900 flex items-center justify-center py-20">
   <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
@@ -331,6 +353,10 @@
         </div>
       </div>
 
+
+
+
+      
       <!-- Apex Legends -->
       <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
         <div class="h-48 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
@@ -365,6 +391,10 @@
         </div>
       </div>
 
+
+
+
+      
       <!-- Fortnite -->
       <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
         <div class="h-48 bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
@@ -504,6 +534,10 @@
       }
     }, 8000);
 
+
+
+
+    
     // Initial check
     handleOmenVisibility();
   })();
@@ -567,6 +601,10 @@
 
     observer.observe(bgSection);
 
+
+
+
+    
     // If the page is already scrolled to show the section, ensure visibility
     if (bgSection.getBoundingClientRect().top < window.innerHeight && bgSection.getBoundingClientRect().bottom > 0) {
       leftImage.classList.remove('md:-translate-x-[32rem]', 'lg:-translate-x-[40rem]');
