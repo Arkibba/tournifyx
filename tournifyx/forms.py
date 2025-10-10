@@ -38,15 +38,24 @@ class TournamentForm(forms.ModelForm):
         model = Tournament
         fields = ['name', 'description', 'category', 'num_participants', 'match_type', 'is_paid', 'price', 'is_public', 'is_active', 'registration_deadline']
         widgets = {
+            'name': forms.TextInput(attrs={
+                'placeholder': 'Enter tournament name',
+                'class': 'w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300'
+            }),
+            'description': forms.Textarea(attrs={
+                'placeholder': 'Add description of your tournament',
+                'rows': 3,
+                'class': 'w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300'
+            }),
             'category': forms.Select(attrs={
-                'class': 'w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500'
+                'class': 'w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300 appearance-none pr-10'
             }),
             'match_type': forms.Select(attrs={
-                'class': 'w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500'
+                'class': 'w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300 appearance-none pr-10'
             }),
             'registration_deadline': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
-                'class': 'w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500'
+                'class': 'w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300'
             }),
         }
 

@@ -73,11 +73,13 @@
                            {% csrf_token %}
                            <span class="font-medium">{{ match.player1.name }}</span>
                            <span class="text-gray-400">vs</span>
-                           <span class="font-medium">{{ match.player2.name }}</span>
-                           <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select">
+                           <span class="font-medium">{% if match.player2 %}{{ match.player2.name }}{% else %}<em>BYE</em>{% endif %}</span>
+                           <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select" {% if not match.player2 %}disabled{% endif %}>
                                <option value="">Select Winner</option>
                                <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>{{ match.player1.name }}</option>
+                               {% if match.player2 %}
                                <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>{{ match.player2.name }}</option>
+                               {% endif %}
                            </select>
                            <label class="text-gray-300 ml-2">
                                <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
@@ -88,8 +90,8 @@
                        <span class="text-gray-400">vs</span>
                        <span class="font-medium">{{ match.player2.name }}</span>
                    {% endif %}
-                   {% if match.winner %}
-                       <span class="ml-4 text-green-400">Winner: {{ match.winner.name }}</span>
+                    {% if match.winner %}
+                        <span class="ml-4 text-green-400 ">Winner is {{ match.winner.name }}</span>
                    {% elif match.has_result %}
                        <span class="ml-4 text-yellow-400">Match is Draw</span>
                    {% endif %}
@@ -100,59 +102,61 @@
        </ul>
 
 {% if knockout_stages %}
-   <!-- 🏆 Knockout Fixtures Grouped by Stage -->
-  <div class="mt-10">
-    <h2 class="text-2xl font-semibold text-orange-400 mb-4 text-center">Knockout Stages</h2>
-
-    {% for stage, stage_matches in knockout_stages.items %}
-        {% if stage != "GROUP" %}
-        <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-200 mb-2 uppercase">{{ stage|title }}</h3>
-            <ul class="bg-gray-900 bg-opacity-80 shadow-md rounded-lg divide-y divide-gray-700">
-                {% for match in stage_matches %}
-                <li class="p-4 hover:bg-gray-700">
-                    {% if is_host %}
-                    <form method="post" action="{% url 'update_match_result' match.id %}" 
-      class="match-form flex flex-wrap items-center gap-2">
-                        {% csrf_token %}
-                        <span class="font-medium">{{ match.player1.name }}</span>
-                        <span class="text-gray-400">vs</span>
-                        <span class="font-medium">{{ match.player2.name }}</span>
-
-                        <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select">
-                            <option value="">Select Winner</option>
-                            <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>{{ match.player1.name }}</option>
-                            <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>{{ match.player2.name }}</option>
-                        </select>
-
-                        <label class="text-gray-300 ml-2">
-                            <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
-                        </label>
-
-                    </form>
-                    {% else %}
-                    <span class="font-medium">{{ match.player1.name }}</span>
-                    <span class="text-gray-400">vs</span>
-                    <span class="font-medium">{{ match.player2.name }}</span>
-                    {% endif %}
-
-                    {% if match.winner %}
-                    <span class="ml-4 text-green-400">Winner: {{ match.winner.name }}</span>
-                    {% elif match.has_result %}
-                    <span class="ml-4 text-yellow-400">Match is Draw</span>
-                    {% endif %}
-                </li>
-                {% empty %}
-                <li class="p-4 text-gray-400">No matches for this stage.</li>
-                {% endfor %}
-            </ul>
+    <div class="mt-10">
+        <h2 class="text-2xl font-semibold text-orange-400 mb-4 text-center">Knockout Bracket</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for label, matches in knockout_stages.items %}
+            <div class="p-4 bg-gray-900 bg-opacity-80 shadow-md rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-200 mb-2">{{ label }}</h3>
+                <ul class="divide-y divide-gray-700">
+                    {% for match in matches %}
+                    <li class="py-2">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">{{ match.player1.name }}</div>
+                                <div class="text-sm text-gray-400">vs</div>
+                                <div class="font-medium">{% if match.player2 %}{{ match.player2.name }}{% else %}<em>BYE</em>{% endif %}</div>
+                            </div>
+                            <div class="text-right">
+                                {% if match.winner %}
+                                    <div class="text-green-400 font-semibold">Winner is {{ match.winner.name }}</div>
+                                {% else %}
+                                    <div class="text-yellow-300">Pending</div>
+                                {% endif %}
+                                {% if is_host %}
+                                    <form method="post" action="{% url 'update_match_result' match.id %}" class="match-form mt-2">
+                                        {% csrf_token %}
+                                        <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select" {% if not match.player2 %}disabled{% endif %}>
+                                            <option value="">Select Winner</option>
+                                            <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>{{ match.player1.name }}</option>
+                                            {% if match.player2 %}
+                                                <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>{{ match.player2.name }}</option>
+                                            {% endif %}
+                                        </select>
+                                        <label class="text-gray-300 ml-2">
+                                            <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
+                                        </label>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
         </div>
-        {% endif %}
-    {% endfor %}
-  </div>
+    </div>
 {% endif %}
 </div>
 
+    <!-- Bracket container -->
+    <div class="max-w-6xl mx-auto mt-6 p-4 sm:p-8" id="bracket-area">
+        <link rel="stylesheet" href="/static/css/bracket.css">
+        <div id="bracket-container" class="bg-gray-900 bg-opacity-80 p-4 rounded-lg shadow-md"></div>
+    </div>
+
+    {% if tournament.match_type != 'knockout' %}
     <!-- Point Table Section -->
     <div class="mt-10">
         <h2 class="text-2xl font-semibold text-gray-200 mb-4">Point Table</h2>
@@ -185,6 +189,7 @@
                 </table>
             </div>
 </div>
+    {% endif %}
 
 
 <script>
@@ -254,6 +259,15 @@ document.addEventListener("DOMContentLoaded", function () {
             setTimeout(() => window.location.reload(), 1000);
         });
     }
+});
+</script>
+<script src="/static/js/bracket.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Start bracket polling for knockout tournaments
+    {% if tournament.match_type == 'knockout' %}
+        try { window.startBracket({{ tournament.id }}); } catch(e) { console.error(e); }
+    {% endif %}
 });
 </script>
 {% endblock %}

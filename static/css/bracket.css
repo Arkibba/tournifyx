@@ -1,0 +1,41 @@
+/* Bracket styles: rounded cards, shadows, headers, connectors */
+#bracket-container { padding: 12px; }
+.bracket-grid { display: flex; gap: 20px; align-items: start; }
+.bracket-column { min-width: 260px; flex: 1 1 auto; }
+.bracket-header { color: #fbbf24; font-weight: 600; margin-bottom: 8px; }
+.match-card { background: rgba(31,41,55,0.85); border: 1px solid rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; box-shadow: 0 4px 10px rgba(2,6,23,0.6); color: #e5e7eb; margin-bottom: 18px; position: relative; overflow: hidden; }
+.match-players { display: flex; flex-direction: column; gap: 6px; }
+.player-name { font-weight: 600; }
+.player-sub { font-size: 12px; color: #9ca3af; }
+.winner-badge {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  color: #062e1f;
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.18);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+.winner-line {
+  margin-top: 8px;
+  color: #10b981;
+  font-weight: 700;
+  font-size: 12px;
+}
+.match-card.pending { opacity: 0.9; }
+.match-card.updated { animation: pulse 1s ease; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 rgba(59,130,246,0.0);} 50% { box-shadow: 0 8px 20px rgba(59,130,246,0.15);} 100% { box-shadow: 0 0 0 rgba(59,130,246,0.0);} }
+/* simple connector line between columns using pseudo element on column */
+.bracket-column::after {
+  content: '';
+  position: absolute;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .bracket-grid { flex-direction: column; }
+  .bracket-column { min-width: auto; }
+}

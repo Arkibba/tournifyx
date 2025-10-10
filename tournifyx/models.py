@@ -107,8 +107,11 @@ class Match(models.Model):
     ]
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_player1')
-    player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_player2')
+    player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_player2', null=True, blank=True)
     stage = models.CharField(max_length=10, choices=STAGE_CHOICES)
+    round_number = models.IntegerField(default=1)
+    parent_match1 = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children_as_parent1')
+    parent_match2 = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children_as_parent2')
     scheduled_time = models.DateTimeField(null=True, blank=True)
     winner = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, related_name='match_winner')
     is_draw = models.BooleanField(default=False)

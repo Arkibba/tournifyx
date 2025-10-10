@@ -23,15 +23,21 @@
    <form method="post" class="space-y-6">
      {% csrf_token %}
      {{ form.name.label_tag }}
-     {{ form.name|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+  {{ form.name|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
      {{ form.description.label_tag }}
-     {{ form.description|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+  {{ form.description|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
      {{ form.category.label_tag }}
-     {{ form.category|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     <div class="relative">
+       {{ form.category|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300 appearance-none pr-10" }}
+       <span class="absolute inset-y-0 right-3 flex items-center text-gray-300 pointer-events-none"><i class="fa fa-caret-down"></i></span>
+     </div>
      {{ form.num_participants.label_tag }}
-     {{ form.num_participants|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+  {{ form.num_participants|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
      {{ form.match_type.label_tag }}
-     {{ form.match_type|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+     <div class="relative">
+       {{ form.match_type|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300 appearance-none pr-10" }}
+       <span class="absolute inset-y-0 right-3 flex items-center text-gray-300 pointer-events-none"><i class="fa fa-caret-down"></i></span>
+     </div>
 
      <!-- New fields -->
 
@@ -41,7 +47,7 @@
    </div>
    <div>
      {{ form.price.label_tag }}
-     {{ form.price|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+  {{ form.price|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
    </div>
    <div>
      {{ form.is_public.label_tag }}
@@ -55,11 +61,11 @@
 
    <div>
      {{ form.registration_deadline.label_tag }}
-     {{ form.registration_deadline|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+  {{ form.registration_deadline|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
    </div>
 
    {{ form.players.label_tag }}
-   {{ form.players|add_class:"w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-orange-500" }}
+  {{ form.players|add_class:"w-full p-3 pl-3 rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" }}
 
 
      <button type="submit" class="w-full py-3 px-6 rounded bg-orange-600 hover:bg-orange-700 transition font-semibold text-white shadow-md">

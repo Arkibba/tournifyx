@@ -15,7 +15,52 @@ import secrets
 
 from .models import *
 from .forms import TournamentForm, JoinTournamentForm, PlayerForm, PublicTournamentJoinForm
-from .utils import generate_knockout_fixtures, generate_league_fixtures
+from .utils import generate_knockout_fixtures, generate_league_fixtures, generate_next_knockout_round, propagate_result_change
+from collections import defaultdict, OrderedDict
+from django.http import JsonResponse
+
+
+def build_knockout_stages(tournament):
+    """Return OrderedDict mapping round label -> list of Match objects for knockout tournaments.
+    Round labels are 'Round 1', 'Round 2', ..., and final round is labelled 'Final' when only one match in that round.
+    """
+    matches = Match.objects.filter(tournament=tournament).select_related('player1', 'player2', 'winner').order_by('round_number', 'id')
+    if not matches.exists():
+        return None
+
+    rounds = defaultdict(list)
+    for m in matches:
+        rounds[m.round_number].append(m)
+
+    ordered = OrderedDict()
+    max_round = max(rounds.keys())
+    for r in sorted(rounds.keys()):
+        label = 'Final' if len(rounds[r]) == 1 and r == max_round else f'Round {r}'
+        ordered[label] = rounds[r]
+    return ordered
+
+
+def tournament_knockout_json(request, tournament_id):
+    """Return knockout stages as JSON for JS bracket rendering."""
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    if tournament.match_type != 'knockout':
+        return JsonResponse({'error': 'Not a knockout tournament'}, status=400)
+
+    stages = build_knockout_stages(tournament) or {}
+    data = []
+    for label, matches in stages.items():
+        mlist = []
+        for m in matches:
+            mlist.append({
+                'id': m.id,
+                'round': m.round_number,
+                'player1': m.player1.name,
+                'player2': m.player2.name if m.player2 else None,
+                'winner_id': m.winner.id if m.winner else None,
+                'winner_name': m.winner.name if m.winner else None,
+            })
+        data.append({'label': label, 'matches': mlist})
+    return JsonResponse({'stages': data})
 
 
 @login_required
@@ -152,6 +197,15 @@ def update_match_result(request, match_id):
         messages.error(request, 'Please select a winner or mark as draw.')
         return redirect('tournament_dashboard', tournament_id=match.tournament.id)
 
+    # Only the tournament host may update knockout match results
+    if match.tournament.match_type == 'knockout':
+        # Compare by user to avoid HostProfile instance mismatch
+        try:
+            if not match.tournament.created_by or match.tournament.created_by.user != request.user:
+                return HttpResponseForbidden('Only the tournament host can update knockout match results.')
+        except Exception:
+            return HttpResponseForbidden('Only the tournament host can update knockout match results.')
+
     # Update match result
     if draw:
         match.winner = None
@@ -163,6 +217,18 @@ def update_match_result(request, match_id):
 
     # Update point table for both players
     update_points_for_match(match, prev)
+    # If knockout, propagate this change to downstream matches and try to generate next round automatically
+    if match.tournament.match_type == 'knockout':
+        try:
+            # Update child matches to reflect change (clear winners downstream)
+            propagate_result_change(match)
+        except Exception as e:
+            print(f"Error propagating result change: {e}")
+        try:
+            generate_next_knockout_round(match.tournament)
+        except Exception as e:
+            print(f"Error generating next knockout round: {e}")
+
     messages.success(request, 'Match result updated and point table recalculated.')
     return redirect('tournament_dashboard', tournament_id=match.tournament.id)
 
@@ -171,6 +237,9 @@ def update_match_result(request, match_id):
 def update_points_for_match(match, prev_result=None):
     # Recalculate the entire point table for the tournament
     tournament = match.tournament
+    # Only maintain point tables for league tournaments
+    if tournament.match_type == 'knockout':
+        return
     players = Player.objects.filter(tournament=tournament)
     # Reset all point table entries
     for pt in PointTable.objects.filter(tournament=tournament):
@@ -185,24 +254,36 @@ def update_points_for_match(match, prev_result=None):
         # Only count as played if result is set (winner or draw)
         if m.winner is not None or m.is_draw:
             pt1, _ = PointTable.objects.get_or_create(tournament=tournament, player=m.player1)
-            pt2, _ = PointTable.objects.get_or_create(tournament=tournament, player=m.player2)
+            # Handle possible bye (player2 is None)
+            if m.player2:
+                pt2, _ = PointTable.objects.get_or_create(tournament=tournament, player=m.player2)
+            else:
+                pt2 = None
+
             pt1.matches_played += 1
-            pt2.matches_played += 1
+            if pt2:
+                pt2.matches_played += 1
+
             if m.is_draw:
-                pt1.draws += 1
-                pt2.draws += 1
-                pt1.points += 1
-                pt2.points += 1
+                # Draw with missing player doesn't make sense; only handle if both present
+                if pt2:
+                    pt1.draws += 1
+                    pt2.draws += 1
+                    pt1.points += 1
+                    pt2.points += 1
             elif m.winner == m.player1:
                 pt1.wins += 1
-                pt2.losses += 1
                 pt1.points += 3
-            elif m.winner == m.player2:
+                if pt2:
+                    pt2.losses += 1
+            elif m.player2 and m.winner == m.player2:
                 pt2.wins += 1
-                pt1.losses += 1
                 pt2.points += 3
+                pt1.losses += 1
+
             pt1.save()
-            pt2.save()
+            if pt2:
+                pt2.save()
 
 def register(request):
     if request.method == 'POST':
@@ -302,6 +383,14 @@ def host_tournament(request):
                 tournament.delete()  # Rollback tournament creation
                 return redirect('host_tournament')
 
+            # If knockout, ensure participants are exactly a power of two (2,4,8,16...)
+            if tournament.match_type == 'knockout':
+                count = len([n for n in player_names if n.strip()])
+                if count < 2 or (count & (count - 1)) != 0:
+                    messages.error(request, 'Knockout tournaments must have 2^n participants (e.g., 2,4,8,16...).')
+                    tournament.delete()
+                    return redirect('host_tournament')
+
 
             player_objs = []
             for name in player_names:
@@ -312,23 +401,34 @@ def host_tournament(request):
                         added_by=host_profile
                     ))
 
-            # Create Match objects for all fixtures (league: all pairs, knockout: shuffled pairs)
+            # Create Match objects for all fixtures
+            from tournifyx.models import Match
             if tournament.match_type == 'knockout':
-                fixture_pairs = generate_knockout_fixtures([p.name for p in player_objs])
+                # generate_knockout_fixtures accepts Player instances and returns pairs (p1, p2)
+                fixture_pairs = generate_knockout_fixtures(player_objs[:])
+                # Create knockout matches in round 1
+                for p1, p2 in fixture_pairs:
+                    Match.objects.create(
+                        tournament=tournament,
+                        player1=p1,
+                        player2=p2,
+                        stage='KNOCKOUT',
+                        round_number=1,
+                        scheduled_time=None
+                    )
             else:
                 fixture_pairs = generate_league_fixtures([p.name for p in player_objs])
-
-            # Map player names to Player objects
-            name_to_player = {p.name: p for p in player_objs}
-            from tournifyx.models import Match
-            for p1, p2 in fixture_pairs:
-                Match.objects.create(
-                    tournament=tournament,
-                    player1=name_to_player[p1],
-                    player2=name_to_player[p2],
-                    stage='GROUP',  # Default to group/league stage
-                    scheduled_time=None
-                )
+                # Map names back to Player objects
+                name_to_player = {p.name: p for p in player_objs}
+                for p1_name, p2_name in fixture_pairs:
+                    Match.objects.create(
+                        tournament=tournament,
+                        player1=name_to_player[p1_name],
+                        player2=name_to_player[p2_name],
+                        stage='GROUP',
+                        round_number=1,
+                        scheduled_time=None
+                    )
 
             tournament_code = tournament.code
             messages.success(
@@ -401,7 +501,9 @@ def tournament_dashboard(request, tournament_id):
         match.has_result = bool(match.winner) or match.is_draw
     
     # Get point table sorted in descending order by points
-    point_table = PointTable.objects.filter(tournament=tournament).select_related('player').order_by('-points')
+    point_table = None
+    if tournament.match_type != 'knockout':
+        point_table = PointTable.objects.filter(tournament=tournament).select_related('player').order_by('-points')
     
     # Determine if the current user is the host
     is_host = False
@@ -416,6 +518,8 @@ def tournament_dashboard(request, tournament_id):
         'participants': participants,
         'matches': matches,
         'point_table': point_table,
+        # Knockout stages grouped by round_number (labelled)
+        'knockout_stages': build_knockout_stages(tournament) if tournament.match_type == 'knockout' else None,
         'is_host': is_host,
     })
 

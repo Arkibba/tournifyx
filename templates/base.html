@@ -19,6 +19,26 @@
         transform: translateY(-6px);
         box-shadow: 0 18px 30px rgba(0,0,0,0.35);
       }
+      /* Global dropdown styling to match dark inputs */
+      select, select:focus, textarea.select-like {
+        background: rgba(255,255,255,0.06) !important; /* near-black */
+        color: #ffffff !important;
+        padding: .6rem .75rem !important;
+        border-radius: .75rem !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+      select:focus {
+        box-shadow: 0 0 0 3px rgba(249,115,22,0.18) !important; /* orange focus ring */
+      }
+      /* Ensure native option text appears white on supported browsers */
+      select option {
+        background: #0b1220 !important;
+        color: #ffffff !important;
+      }
+      /* caret styling wrapper for custom select caret in templates */
+      .relative .fa-caret-down { color: #cbd5e1; }
     </style>
 </head>
 <body class="bg-transparent m-0 p-0">
