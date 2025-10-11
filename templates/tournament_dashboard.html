@@ -8,250 +8,266 @@
     style="background-image: url('{% static 'images/bg2.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
 ></div>
 
-<div class="px-4">
-    <div class="max-w-6xl mx-auto mt-6 sm:mt-10 p-4 sm:p-8 bg-gray-800 bg-opacity-90 shadow-lg rounded-lg text-gray-100 relative z-10">
-   <!-- Logo and Tournament Header -->
-   <div class="text-center mb-8">
-       <img src="/static/images/logo.png" alt="Tournament Logo" class="mx-auto w-32 h-32 mb-4">
-       <h1 class="text-4xl font-bold text-orange-400">{{ tournament.name }}</h1>
-   </div>
+<!-- Main Container -->
+<div class="relative z-10 px-4 py-8">
+    <div class="max-w-6xl mx-auto bg-gray-800 bg-opacity-90 text-gray-100 shadow-lg rounded-lg p-6 space-y-10">
 
-
-   <!-- Tournament Description -->
-   <div class="mb-8 p-4 bg-gray-900 bg-opacity-80 shadow-md rounded-lg">
-       <p class="text-lg text-gray-300">{{ tournament.description }}</p>
-   </div>
-
-
-   <!-- Tournament Details -->
-   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-       <div class="p-4 bg-gray-900 bg-opacity-80 shadow-md rounded-lg">
-           <p><strong>Category:</strong> {{ tournament.category }}</p>
-           <p><strong>Match Type:</strong> {{ tournament.match_type }}</p>
-           <p><strong>Total Participants:</strong> {{ participants.count }}</p>
-       </div>
-   </div>
-
-
-   <!-- Participants Section -->
-   <div class="mb-8">
-       <h2 class="text-2xl font-semibold text-gray-200 mb-4">Participants</h2>
-       <ul class="bg-gray-900 bg-opacity-80 shadow-md rounded-lg divide-y divide-gray-700">
-           {% for participant in participants %}
-               <li class="p-4 hover:bg-gray-700">{{ participant.name }}</li>
-           {% empty %}
-               <li class="p-4 text-gray-400">No participants have joined this tournament yet.</li>
-           {% endfor %}
-       </ul>
-   </div>
-
-
-   <!-- Button to Toggle Fixtures Panel -->
-   <div class="text-center mb-8">
-       <button id="toggle-fixtures-btn" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg">
-           Show Fixtures
-       </button>
-   </div>
-
-
-   <!-- Fixtures Section (Initially Hidden) -->
-   <div id="fixtures-panel" class="hidden">
-       <div class="flex items-center justify-between mb-4">
-    <h2 class="text-2xl font-semibold text-gray-200">Fixtures</h2>
-    {% if is_host %}
-        <button id="updateAllBtn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
-            Update All
-        </button>
-    {% endif %}
-</div>
-       <ul class="bg-gray-900 bg-opacity-80 shadow-md rounded-lg divide-y divide-gray-700">
-           {% for match in matches %}
-               <li class="p-4 hover:bg-gray-700">
-                   {% if is_host %}
-                       <form method="post" action="{% url 'update_match_result' match.id %}" 
-                       class="match-form flex items-center space-x-4">
-                           {% csrf_token %}
-                           <span class="font-medium">{{ match.player1.name }}</span>
-                           <span class="text-gray-400">vs</span>
-                           <span class="font-medium">{% if match.player2 %}{{ match.player2.name }}{% else %}<em>BYE</em>{% endif %}</span>
-                           <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select" {% if not match.player2 %}disabled{% endif %}>
-                               <option value="">Select Winner</option>
-                               <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>{{ match.player1.name }}</option>
-                               {% if match.player2 %}
-                               <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>{{ match.player2.name }}</option>
-                               {% endif %}
-                           </select>
-                           <label class="text-gray-300 ml-2">
-                               <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
-                           </label>
-                       </form>
-                   {% else %}
-                       <span class="font-medium">{{ match.player1.name }}</span>
-                       <span class="text-gray-400">vs</span>
-                       <span class="font-medium">{{ match.player2.name }}</span>
-                   {% endif %}
-                    {% if match.winner %}
-                        <span class="ml-4 text-green-400 ">Winner is {{ match.winner.name }}</span>
-                   {% elif match.has_result %}
-                       <span class="ml-4 text-yellow-400">Match is Draw</span>
-                   {% endif %}
-               </li>
-           {% empty %}
-               <li class="p-4 text-gray-400">No fixtures available yet.</li>
-           {% endfor %}
-       </ul>
-
-{% if knockout_stages %}
-    <div class="mt-10">
-        <h2 class="text-2xl font-semibold text-orange-400 mb-4 text-center">Knockout Bracket</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {% for label, matches in knockout_stages.items %}
-            <div class="p-4 bg-gray-900 bg-opacity-80 shadow-md rounded-lg">
-                <h3 class="text-lg font-semibold text-gray-200 mb-2">{{ label }}</h3>
-                <ul class="divide-y divide-gray-700">
-                    {% for match in matches %}
-                    <li class="py-2">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="font-medium">{{ match.player1.name }}</div>
-                                <div class="text-sm text-gray-400">vs</div>
-                                <div class="font-medium">{% if match.player2 %}{{ match.player2.name }}{% else %}<em>BYE</em>{% endif %}</div>
-                            </div>
-                            <div class="text-right">
-                                {% if match.winner %}
-                                    <div class="text-green-400 font-semibold">Winner is {{ match.winner.name }}</div>
-                                {% else %}
-                                    <div class="text-yellow-300">Pending</div>
-                                {% endif %}
-                                {% if is_host %}
-                                    <form method="post" action="{% url 'update_match_result' match.id %}" class="match-form mt-2">
-                                        {% csrf_token %}
-                                        <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select" {% if not match.player2 %}disabled{% endif %}>
-                                            <option value="">Select Winner</option>
-                                            <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>{{ match.player1.name }}</option>
-                                            {% if match.player2 %}
-                                                <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>{{ match.player2.name }}</option>
-                                            {% endif %}
-                                        </select>
-                                        <label class="text-gray-300 ml-2">
-                                            <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
-                                        </label>
-                                    </form>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endfor %}
+        <!-- Header: Logo + Tournament Name -->
+        <div class="text-center">
+            <img src="{% static 'images/logo.png' %}" alt="Tournament Logo" class="mx-auto w-32 h-32 mb-4">
+            <h1 class="text-4xl font-bold text-orange-400">{{ tournament.name }}</h1>
         </div>
-    </div>
-{% endif %}
-</div>
 
-    <!-- Bracket container -->
-    <div class="max-w-6xl mx-auto mt-6 p-4 sm:p-8" id="bracket-area">
-        <link rel="stylesheet" href="/static/css/bracket.css">
-        <div id="bracket-container" class="bg-gray-900 bg-opacity-80 p-4 rounded-lg shadow-md"></div>
-    </div>
+        <!-- Description -->
+        <div class="p-4 bg-gray-900 bg-opacity-80 rounded shadow">
+            <p class="text-lg text-gray-300 text-center">{{ tournament.description }}</p>
+        </div>
 
-    {% if tournament.match_type != 'knockout' %}
-    <!-- Point Table Section -->
-    <div class="mt-10">
-        <h2 class="text-2xl font-semibold text-gray-200 mb-4">Point Table</h2>
-            <div class="overflow-x-auto rounded-lg bg-gray-900 bg-opacity-80">
-                <table class="min-w-full">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2">Player</th>
-                    <th class="px-4 py-2">Played</th>
-                    <th class="px-4 py-2">Wins</th>
-                    <th class="px-4 py-2">Draws</th>
-                    <th class="px-4 py-2">Losses</th>
-                    <th class="px-4 py-2">Points</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in point_table %}
-                <tr>
-                    <td class="px-4 py-2">{{ entry.player.name }}</td>
-                    <td class="px-4 py-2">{{ entry.matches_played }}</td>
-                    <td class="px-4 py-2">{{ entry.wins }}</td>
-                    <td class="px-4 py-2">{{ entry.draws }}</td>
-                    <td class="px-4 py-2">{{ entry.losses }}</td>
-                    <td class="px-4 py-2 font-bold">{{ entry.points }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="px-4 py-2 text-gray-400">No point table data yet.</td></tr>
-                {% endfor %}
-            </tbody>
-                </table>
+        <!-- Tournament Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-4 bg-gray-900 bg-opacity-80 rounded shadow space-y-2">
+                <p><strong>Category:</strong> {{ tournament.category }}</p>
+                <p><strong>Match Type:</strong> {{ tournament.match_type }}</p>
+                <p><strong>Total Participants:</strong> {{ participants.count }}</p>
             </div>
+        </div>
+
+        <!-- Participants -->
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-200 mb-4">Participants</h2>
+            <ul class="bg-gray-900 bg-opacity-80 rounded shadow divide-y divide-gray-700">
+                {% for participant in participants %}
+                    <li class="p-4 hover:bg-gray-700">{{ participant.name }}</li>
+                {% empty %}
+                    <li class="p-4 text-gray-400">No participants have joined this tournament yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Toggle Fixtures Button -->
+        <div class="text-center">
+            <button id="toggle-fixtures-btn" class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg">
+                Show Fixtures
+            </button>
+        </div>
+
+        <!-- Fixtures Section -->
+        <div id="fixtures-panel" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <h2 class="text-2xl font-semibold text-gray-200">Fixtures</h2>
+
+                <div class="flex gap-3">
+                    {% if is_host %}
+                        <button id="updateAllBtn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
+                            Update All
+                        </button>
+                    {% endif %}
+
+                    {% if tournament.match_type == "league" %}
+                        <form action="{% url 'regenerate_fixtures' tournament.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-4 py-2 rounded-lg">
+                                Regenerate Fixtures
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- League Fixtures -->
+            <ul class="bg-gray-900 bg-opacity-80 rounded shadow divide-y divide-gray-700">
+                {% for match in matches %}
+                    <li class="p-4 hover:bg-gray-700">
+                        {% if is_host %}
+                            <form method="post" action="{% url 'update_match_result' match.id %}" class="match-form flex flex-wrap gap-4 items-center">
+                                {% csrf_token %}
+                                <span class="font-medium">{{ match.player1.name }}</span>
+                                <span class="text-gray-400">vs</span>
+                                <span class="font-medium">
+                                    {% if match.player2 %} {{ match.player2.name }} {% else %}<em>BYE</em>{% endif %}
+                                </span>
+
+                                <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select"
+                                        {% if not match.player2 %}disabled{% endif %}>
+                                    <option value="">Select Winner</option>
+                                    <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>
+                                        {{ match.player1.name }}
+                                    </option>
+                                    {% if match.player2 %}
+                                        <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>
+                                            {{ match.player2.name }}
+                                        </option>
+                                    {% endif %}
+                                </select>
+
+                                <label class="text-gray-300 ml-2">
+                                    <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
+                                </label>
+                            </form>
+                        {% else %}
+                            <span class="font-medium">{{ match.player1.name }}</span>
+                            <span class="text-gray-400">vs</span>
+                            <span class="font-medium">{{ match.player2.name }}</span>
+                        {% endif %}
+
+                        {% if match.winner %}
+                            <span class="ml-4 text-green-400">Winner is {{ match.winner.name }}</span>
+                        {% elif match.has_result %}
+                            <span class="ml-4 text-yellow-400">Match is Draw</span>
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li class="p-4 text-gray-400">No fixtures available yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Knockout Bracket -->
+        {% if tournament.type == "Knockout" and knockout_stages %}
+            <div>
+                <h2 class="text-2xl font-semibold text-orange-400 mb-4 text-center">Knockout Bracket</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {% for label, matches in knockout_stages.items %}
+                        <div class="bg-gray-900 bg-opacity-80 p-4 rounded shadow">
+                            <h3 class="text-lg font-semibold text-gray-200 mb-2">{{ label }}</h3>
+                            <ul class="divide-y divide-gray-700">
+                                {% for match in matches %}
+                                    <li class="py-2">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <div class="font-medium">{{ match.player1.name }}</div>
+                                                <div class="text-sm text-gray-400">vs</div>
+                                                <div class="font-medium">
+                                                    {% if match.player2 %}{{ match.player2.name }}{% else %}<em>BYE</em>{% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="text-right">
+                                                {% if match.winner %}
+                                                    <div class="text-green-400 font-semibold">Winner is {{ match.winner.name }}</div>
+                                                {% else %}
+                                                    <div class="text-yellow-300">Pending</div>
+                                                {% endif %}
+
+                                                {% if is_host %}
+                                                    <form method="post" action="{% url 'update_match_result' match.id %}" class="match-form mt-2">
+                                                        {% csrf_token %}
+                                                        <select name="winner_id" class="bg-gray-800 text-white rounded px-2 py-1 winner-select"
+                                                                {% if not match.player2 %}disabled{% endif %}>
+                                                            <option value="">Select Winner</option>
+                                                            <option value="{{ match.player1.id }}" {% if match.winner == match.player1 %}selected{% endif %}>
+                                                                {{ match.player1.name }}
+                                                            </option>
+                                                            {% if match.player2 %}
+                                                                <option value="{{ match.player2.id }}" {% if match.winner == match.player2 %}selected{% endif %}>
+                                                                    {{ match.player2.name }}
+                                                                </option>
+                                                            {% endif %}
+                                                        </select>
+
+                                                        <label class="text-gray-300 ml-2">
+                                                            <input type="checkbox" name="draw" value="1" class="draw-checkbox"> Draw
+                                                        </label>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Bracket Canvas -->
+        <div id="bracket-area">
+            <link rel="stylesheet" href="/static/css/bracket.css">
+            <div id="bracket-container" class="bg-gray-900 bg-opacity-80 p-4 rounded shadow mt-6"></div>
+        </div>
+
+        <!-- Point Table -->
+        {% if tournament.match_type != 'knockout' %}
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-200 mb-4">Point Table</h2>
+                <div class="overflow-x-auto bg-gray-900 bg-opacity-80 rounded shadow">
+                    <table class="min-w-full text-center">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2">Player</th>
+                                <th class="px-4 py-2">Played</th>
+                                <th class="px-4 py-2">Wins</th>
+                                <th class="px-4 py-2">Draws</th>
+                                <th class="px-4 py-2">Losses</th>
+                                <th class="px-4 py-2">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in point_table %}
+                                <tr>
+                                    <td class="px-4 py-2">{{ entry.player.name }}</td>
+                                    <td class="px-4 py-2">{{ entry.matches_played }}</td>
+                                    <td class="px-4 py-2">{{ entry.wins }}</td>
+                                    <td class="px-4 py-2">{{ entry.draws }}</td>
+                                    <td class="px-4 py-2">{{ entry.losses }}</td>
+                                    <td class="px-4 py-2 font-bold">{{ entry.points }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="6" class="px-4 py-2 text-gray-400">No point table data yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </div>
-    {% endif %}
 
-
+<!-- Scripts -->
+<script src="/static/js/bracket.js"></script>
 <script>
-// Toggle fixtures panel
-document.getElementById('toggle-fixtures-btn').addEventListener('click', function () {
+document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById('toggle-fixtures-btn');
     const fixturesPanel = document.getElementById('fixtures-panel');
-    if (fixturesPanel.classList.contains('hidden')) {
-        fixturesPanel.classList.remove('hidden');
-        this.textContent = 'Hide Fixtures';
-    } else {
-        fixturesPanel.classList.add('hidden');
-        this.textContent = 'Show Fixtures';
-    }
-});
 
-// Winner/Draw mutual exclusion logic
-document.querySelectorAll('form').forEach(function(form) {
-    const winnerSelect = form.querySelector('.winner-select');
-    const drawCheckbox = form.querySelector('.draw-checkbox');
-    if (winnerSelect && drawCheckbox) {
-        // Initial state: if a winner is selected, disable draw; if draw is checked, disable winner
+    toggleBtn.addEventListener('click', function () {
+        fixturesPanel.classList.toggle('hidden');
+        toggleBtn.textContent = fixturesPanel.classList.contains('hidden') ? 'Show Fixtures' : 'Hide Fixtures';
+    });
+
+    // Winner/Draw toggle logic
+    document.querySelectorAll('form.match-form').forEach(function(form) {
+        const winnerSelect = form.querySelector('.winner-select');
+        const drawCheckbox = form.querySelector('.draw-checkbox');
+
         function updateState() {
-            if (drawCheckbox.checked) {
-                winnerSelect.disabled = true;
-            } else {
-                winnerSelect.disabled = false;
-            }
-            if (winnerSelect.value) {
-                drawCheckbox.disabled = true;
-            } else {
-                drawCheckbox.disabled = false;
-            }
+            winnerSelect.disabled = drawCheckbox.checked;
+            drawCheckbox.disabled = winnerSelect.value !== "";
         }
-        // Set initial state
+
         drawCheckbox.checked = false;
         updateState();
-        // Event listeners
+
         drawCheckbox.addEventListener('change', updateState);
         winnerSelect.addEventListener('change', updateState);
-    }
-});
-document.addEventListener("DOMContentLoaded", function () {
-    const updateAllBtn = document.getElementById("updateAllBtn");
+    });
 
+    // Update All button
+    const updateAllBtn = document.getElementById("updateAllBtn");
     if (updateAllBtn) {
         updateAllBtn.addEventListener("click", async function () {
             updateAllBtn.disabled = true;
             updateAllBtn.textContent = "Updating...";
 
             const forms = document.querySelectorAll(".match-form");
-
             for (const form of forms) {
                 const formData = new FormData(form);
-
-                // Use fetch() to send each form individually
                 await fetch(form.action, {
                     method: "POST",
                     body: formData,
                     headers: { "X-Requested-With": "XMLHttpRequest" }
                 });
-
-                // Small delay so Django can process properly
                 await new Promise(resolve => setTimeout(resolve, 300));
             }
 
@@ -259,12 +275,8 @@ document.addEventListener("DOMContentLoaded", function () {
             setTimeout(() => window.location.reload(), 1000);
         });
     }
-});
-</script>
-<script src="/static/js/bracket.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Start bracket polling for knockout tournaments
+
+    // Knockout bracket
     {% if tournament.match_type == 'knockout' %}
         try { window.startBracket({{ tournament.id }}); } catch(e) { console.error(e); }
     {% endif %}
