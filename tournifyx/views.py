@@ -94,6 +94,7 @@ def join_public_tournament(request, tournament_id):
                         user_profile=user_profile
                     )
                 messages.success(request, 'You have successfully joined the tournament!')
+                messages.info(request, "The organizer needs to regenerate fixtures to include you.")
                 return redirect('tournament_dashboard', tournament_id=tournament.id)
     else:
         form = PublicTournamentJoinForm()
@@ -502,6 +503,8 @@ def join_tournament(request):
     })
 
 
+
+
 @login_required
 def tournament_dashboard(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id)
@@ -532,6 +535,60 @@ def tournament_dashboard(request, tournament_id):
         'knockout_stages': build_knockout_stages(tournament) if tournament.match_type == 'knockout' else None,
         'is_host': is_host,
     })
+
+@login_required
+def regenerate_fixtures(request, tournament_id):
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+
+    try:
+        host_profile = HostProfile.objects.get(user=request.user)
+        if tournament.created_by != host_profile:
+            messages.error(request, "You are not authorized to regenerate fixtures.")
+            return redirect('tournament_dashboard', tournament_id=tournament.id)
+    except HostProfile.DoesNotExist:
+        messages.error(request, "You are not authorized to regenerate fixtures.")
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+
+    # ✅ Only allow regeneration for league-type tournaments
+    if tournament.match_type != 'league':
+        messages.warning(request, "Fixture regeneration is only available for league tournaments.")
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+
+    # Delete old matches before regenerating
+    Match.objects.filter(tournament=tournament).delete()
+
+    # ✅ Delete old point table entries
+    PointTable.objects.filter(tournament=tournament).delete()
+
+    # ✅ Fetch players and generate new fixtures
+    players = list(Player.objects.filter(tournament=tournament))
+    fixture_pairs = generate_league_fixtures(players)
+
+    # ✅ Create new Match entries
+    for p1, p2 in fixture_pairs:
+        Match.objects.create(
+            tournament=tournament,
+            player1=p1,
+            player2=p2,
+            stage='GROUP',
+            round_number=1,
+            scheduled_time=None
+        )
+
+    # ✅ Create default PointTable entries for all players
+    for player in players:
+        PointTable.objects.create(
+            tournament=tournament,
+            player=player,
+            matches_played=0,
+            wins=0,
+            draws=0,
+            losses=0,
+            points=0
+        )
+
+    messages.success(request, "League fixtures regenerated and point table initialized successfully!")
+    return redirect('tournament_dashboard', tournament_id=tournament.id)
 
 
 @login_required(login_url='login')
