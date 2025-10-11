@@ -74,6 +74,7 @@
 
   /* Left floating image: visuals handled via Tailwind classes in markup (bigger and shifted left) */
 </style>
+<link rel="stylesheet" href="{% static 'css/leaderboard.css' %}">
 {% endblock %}
 
 
@@ -121,6 +122,7 @@
   })();
 </script>
 {% endblock %}
+<script src="{% static 'js/players-table.js' %}"></script>
 
 
 
@@ -157,12 +159,7 @@
 </div>
 
 
-<!-- Left-side floating image for leaderboard area (hidden on small screens). Uses Tailwind for sizing and translation. -->
-<div id="leftFloatImage" aria-hidden="true" class="hidden md:block fixed top-[6vh] left-0 z-50 pointer-events-none transform md:-translate-x-[32rem] lg:-translate-x-[40rem] opacity-0 transition-transform transition-opacity duration-700 ease-out">
-  <div class="overflow-hidden rounded-2xl shadow-2xl bg-transparent w-[700px] md:w-[950px] lg:w-[1200px]">
-    <img src="{% static 'images/jett.png' %}" alt="" class="w-full h-auto object-cover block">
-  </div>
-</div>
+<!-- Left floating image removed for cleaner layout -->
 <div class="fixed top-0 left-0 w-full h-full z-10 pointer-events-none "></div>
 
 <!-- Container for floating X elements (high z so visible above static backgrounds) -->
@@ -199,88 +196,45 @@
   </div>
 
 
-  
-  <!-- Bottom-Center: Scroll Indicator -->
-  <div class="fixed left-1/2 bottom-2 md:bottom-4 -translate-x-1/2 z-40 flex flex-col items-center opacity-85">
-    <a href="#esports-games">
-      <svg width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-    </a>
-  </div>
+
 </div>
-
-
 
 <!-- Additional full-screen background section revealed when scrolling down -->
 <section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/bg2.png' %}');">
   <div class="absolute inset-0 bg-transparent"></div>
   <div class="relative z-10 w-full max-w-6xl mx-auto p-8">
-    <h2 class="text-4xl md:text-5xl font-extrabold mb-8 text-center">Explore More</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <h2 class="text-4xl md:text-5xl font-extrabold mb-8 text-center">Players' Picks — Leaders' Favorites</h2>
+  <p class="text-lg text-gray-300 max-w-4xl mx-auto mb-8 text-center">What the top-ranked players are playing and recommending — curated highlights and quick insights.</p>
+    <div class="grid grid-cols-1 justify-center gap-8">
       <!-- Player Leaderboard -->
-      <div class="bg-black/60 rounded-2xl shadow-lg p-6 flex flex-col">
-        <h3 class="text-2xl font-bold text-orange-400 mb-4 text-center">Top Players</h3>
+      <div class="bg-black/60 rounded-2xl shadow-lg p-6 flex flex-col mx-auto w-full max-w-3xl">
+  <h3 class="text-2xl font-bold text-orange-400 mb-1 text-center">Top Players</h3>
         <div class="overflow-x-auto">
-          <table class="min-w-full text-left text-white">
+          <table id="playersTable" class="players-leaderboard min-w-full text-left text-white bg-transparent rounded-md overflow-hidden" aria-describedby="top-players">
             <thead>
-              <tr class="border-b border-gray-700">
-                <th class="py-2 px-3">#</th>
-                <th class="py-2 px-3">Avatar</th>
-                <th class="py-2 px-3">Username</th>
-                <th class="py-2 px-3">Points</th>
-                <th class="py-2 px-3">Tournaments</th>
-                <th class="py-2 px-3">Wins</th>
-                <th class="py-2 px-3">Win Rate</th>
+              <tr class="bg-gray-800/60">
+                <th class="py-3 px-4 text-sm text-gray-300 uppercase">Rank</th>
+                <th class="py-3 px-4 text-sm text-gray-300 uppercase sortable" data-type="text" data-index="1" role="columnheader" aria-sort="none">Username</th>
+                <th class="py-3 px-4 text-sm text-gray-300 uppercase sortable" data-type="number" data-index="2" role="columnheader" aria-sort="none">Points</th>
+                <th class="py-3 px-4 text-sm text-gray-300 uppercase sortable" data-type="number" data-index="3" role="columnheader" aria-sort="none">Tournaments</th>
+                <th class="py-3 px-4 text-sm text-gray-300 uppercase sortable" data-type="number" data-index="4" role="columnheader" aria-sort="none">Wins</th>
+                <th class="py-3 px-4 text-sm text-gray-300 uppercase sortable" data-type="number" data-index="5" role="columnheader" aria-sort="none">Win Rate</th>
+                <th class="py-3 px-4 text-sm text-gray-300 uppercase">Trend</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-800">
               {% for player in top_players %}
-              <tr class="border-b border-gray-800 hover:bg-orange-900/20 transition">
-                <td class="py-2 px-3 font-bold">{{ forloop.counter }}</td>
-                <td class="py-2 px-3"><img src="{{ player.avatar_url }}" alt="avatar" class="w-8 h-8 rounded-full"></td>
-                <td class="py-2 px-3">{{ player.username }}</td>
-                <td class="py-2 px-3">{{ player.points }}</td>
-                <td class="py-2 px-3">{{ player.tournaments }}</td>
-                <td class="py-2 px-3">{{ player.wins }}</td>
-                <td class="py-2 px-3">{{ player.win_rate }}%</td>
+              <tr class="hover:bg-gray-700/30 transition" style="--win-rate: {{ player.win_rate }}%;">
+                <td class="rank">{{ forloop.counter }}</td>
+                <td class="">{{ player.username }}</td>
+                <td data-value="{{ player.points }}">{{ player.points }}</td>
+                <td data-value="{{ player.tournaments }}">{{ player.tournaments }}</td>
+                <td data-value="{{ player.wins }}">{{ player.wins }}</td>
+                <td data-value="{{ player.win_rate }}">{{ player.win_rate }}%</td>
+                <td><div class="spark-bg"><div class="spark-bar"></div></div></td>
               </tr>
               {% empty %}
-              <tr><td colspan="7" class="py-4 text-center text-gray-400">No player data available.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      
-      <!-- Team Leaderboard -->
-      <div class="bg-black/60 rounded-2xl shadow-lg p-6 flex flex-col">
-        <h3 class="text-2xl font-bold text-orange-400 mb-4 text-center">Top Teams</h3>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-left text-white">
-            <thead>
-              <tr class="border-b border-gray-700">
-                <th class="py-2 px-3">#</th>
-                <th class="py-2 px-3">Logo</th>
-                <th class="py-2 px-3">Team Name</th>
-                <th class="py-2 px-3">Points</th>
-                <th class="py-2 px-3">Tournaments</th>
-                <th class="py-2 px-3">Wins</th>
-                <th class="py-2 px-3">Win Rate</th>
-              </tr>
-            </thead>
-            <tbody>
-              
-              {% for team in top_teams %}
-              <tr class="border-b border-gray-800 hover:bg-orange-900/20 transition">
-                <td class="py-2 px-3 font-bold">{{ forloop.counter }}</td>
-                <td class="py-2 px-3"><img src="{{ team.logo_url }}" alt="logo" class="w-8 h-8 rounded-full"></td>
-                <td class="py-2 px-3">{{ team.name }}</td>
-                <td class="py-2 px-3">{{ team.points }}</td>
-                <td class="py-2 px-3">{{ team.tournaments }}</td>
-                <td class="py-2 px-3">{{ team.wins }}</td>
-                <td class="py-2 px-3">{{ team.win_rate }}%</td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="7" class="py-4 text-center text-gray-400">No team data available.</td></tr>
+              <tr><td colspan="7" class="py-6 text-center text-gray-400">No player data available.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -298,8 +252,9 @@
 
 
 <!-- New section: Most Promising Esports Games -->
-<section id="esports-games" class="relative w-full min-h-screen bg-gray-900 flex items-center justify-center py-20">
-  <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
+<section id="esports-games" class="relative w-full min-h-screen flex items-center justify-center -mt-6 md:-mt-8 py-20">
+  <!-- background image for esports games section -->
+  <div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static 'images/bg3.png' %}');"></div>
   <div class="relative z-10 max-w-6xl mx-auto px-8">
     <div class="text-center mb-16">
       <h2 class="text-4xl md:text-6xl font-extrabold text-white mb-6">Most Promising <span class="text-orange-500">Esports Games</span></h2>

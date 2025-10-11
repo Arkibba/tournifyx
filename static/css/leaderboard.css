@@ -1,0 +1,21 @@
+/* Styles for Top Players table and sparklines */
+.players-leaderboard {
+  border-collapse: separate;
+}
+.players-leaderboard thead tr { background: rgba(31,41,55,0.6); }
+.players-leaderboard th { cursor: pointer; }
+.players-leaderboard th { position: relative; }
+.spark-bg { background: rgba(255,255,255,0.06); height: 8px; border-radius: 999px; width: 64px; }
+.spark-bar { background: linear-gradient(90deg,#f97316,#fb923c); height: 8px; border-radius: 999px; width: var(--win-rate, 0%); transition: width 420ms cubic-bezier(.2,.9,.2,1); }
+
+.players-leaderboard td { vertical-align: middle; }
+.players-leaderboard tbody tr:hover { background: rgba(75,85,99,0.18); }
+.players-leaderboard th, .players-leaderboard td { padding: 0.75rem 1rem; }
+.players-leaderboard th { color: #d1d5db; font-size: 0.8rem; letter-spacing: .08em; }
+.players-leaderboard td { color: #fff; }
+
+.players-leaderboard .rank { color: #fb923c; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .players-leaderboard tr { transition: none !important; }
+}
