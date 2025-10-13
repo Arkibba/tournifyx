@@ -4,6 +4,9 @@ from django.db import models
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     joined_tournaments = models.ManyToManyField('Tournament', through='TournamentParticipant')
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    cover_photo = models.ImageField(upload_to='covers/', null=True, blank=True)
+    bio = models.TextField(null=True, blank=True)
 
     def _str_(self):
         return self.user.username

@@ -18,6 +18,7 @@ from .forms import TournamentForm, JoinTournamentForm, PlayerForm, PublicTournam
 from .utils import generate_knockout_fixtures, generate_league_fixtures, generate_next_knockout_round, propagate_result_change
 from collections import defaultdict, OrderedDict
 from django.http import JsonResponse
+from django.contrib.auth.models import User
 
 
 def build_knockout_stages(tournament):
@@ -63,6 +64,94 @@ def tournament_knockout_json(request, tournament_id):
             })
         data.append({'label': label, 'matches': mlist})
     return JsonResponse({'stages': data})
+
+
+def profile_view(request, username):
+    # Basic profile lookup
+    user = get_object_or_404(User, username=username)
+    # Ensure a UserProfile exists
+    try:
+        user_profile = UserProfile.objects.get(user=user)
+    except UserProfile.DoesNotExist:
+        user_profile = None
+
+    # Tournaments organized by this user (as Host)
+    tournaments_organized_qs = Tournament.objects.filter(created_by__user=user)
+    tournaments_organized = tournaments_organized_qs.count()
+
+    # Tournaments participated
+    tournaments_participated_qs = TournamentParticipant.objects.filter(user_profile__user=user)
+    tournaments_participated = tournaments_participated_qs.count()
+
+    # Matches played: matches belonging to tournaments the user participated in
+    participated_tournaments = tournaments_participated_qs.values_list('tournament', flat=True)
+    matches_played = Match.objects.filter(tournament__in=participated_tournaments).count()
+
+    # Top finishes
+    # For knockout: count FINAL matches where winner.name matches the user's username
+    knockout_wins = Match.objects.filter(stage='FINAL', winner__isnull=False, winner__name__iexact=user.username).count()
+
+    # For league: count tournaments where PointTable top player name matches user.username
+    league_firsts = 0
+    league_seconds = 0
+    # For each league tournament the user participated in, check PointTable ordering
+    for t in Tournament.objects.filter(id__in=participated_tournaments, match_type='league'):
+        pts = PointTable.objects.filter(tournament=t).order_by('-points')
+        if pts.exists():
+            top = pts.first()
+            if top.player.name.lower() == user.username.lower():
+                league_firsts += 1
+            if pts.count() > 1 and pts[1].player.name.lower() == user.username.lower():
+                league_seconds += 1
+
+    # For knockouts second place: count finals where winner is other and the runner-up matches user's name
+    knockout_seconds = 0
+    finals = Match.objects.filter(stage='FINAL', tournament__in=participated_tournaments).select_related('player1', 'player2', 'winner')
+    for f in finals:
+        # runner-up is the non-winner player
+        if f.winner:
+            runner = None
+            if f.player1 and f.winner and f.player1.id != f.winner.id:
+                runner = f.player1
+            elif f.player2 and f.winner and f.player2.id != f.winner.id:
+                runner = f.player2
+            if runner and runner.name.lower() == user.username.lower():
+                knockout_seconds += 1
+
+    top_firsts = knockout_wins + league_firsts
+    top_seconds = knockout_seconds + league_seconds
+
+    # Handle avatar / cover uploads and bio update if owner posts
+    if request.method == 'POST' and request.user.is_authenticated and request.user == user:
+        # Ensure user_profile exists
+        if not user_profile:
+            user_profile = UserProfile.objects.create(user=user)
+        avatar = request.FILES.get('avatar')
+        cover = request.FILES.get('cover')
+        bio_text = request.POST.get('bio')
+        if avatar:
+            user_profile.avatar = avatar
+        if cover:
+            user_profile.cover_photo = cover
+        if bio_text is not None:
+            user_profile.bio = bio_text.strip() or None
+        user_profile.save()
+        # If this is an AJAX request, return JSON so the client can update without reload
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'ok', 'bio': user_profile.bio})
+        messages.success(request, 'Profile updated.')
+        return redirect('profile_view', username=username)
+
+    context = {
+        'profile_user': user,
+        'user_profile': user_profile,
+        'tournaments_organized': tournaments_organized,
+        'matches_played': matches_played,
+        'tournaments_participated': tournaments_participated,
+        'top_firsts': top_firsts,
+        'top_seconds': top_seconds,
+    }
+    return render(request, 'profile.html', context)
 
 
 

@@ -20,6 +20,8 @@ from django.contrib import admin
 from django.urls import path
 from tournifyx import views
 from tournifyx.views import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
@@ -43,7 +45,11 @@ urlpatterns = [
    path('match/<int:match_id>/update/', views.update_match_result, name='update_match_result'),
    path('tournament/<int:tournament_id>/knockout-json/', views.tournament_knockout_json, name='tournament_knockout_json'),
    path('tournament/<int:tournament_id>/regenerate/', views.regenerate_fixtures, name='regenerate_fixtures'),
+   path('profile/<str:username>/', views.profile_view, name='profile_view'),
    #path('payment/success/<int:tournament_id>/', views.payment_success, name='payment_success'),
    #path('payment/cancel/<int:tournament_id>/', views.payment_cancel, name='payment_cancel'),
    
 ]
+
+if settings.DEBUG:
+   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
