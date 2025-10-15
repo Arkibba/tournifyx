@@ -11,6 +11,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
     <style>
+      /* Floating X and O styles */
+      #floatingXs { pointer-events: none; z-index: 9999; }
+      .floating-x {
+        position: absolute;
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 1;
+        user-select: none;
+        opacity: 0;
+        will-change: transform, opacity;
+        transform: translateX(var(--drift,0)) translateY(0) rotate(var(--rot,0deg));
+        animation-name: floatX;
+        animation-fill-mode: forwards;
+      }
+
+      @keyframes floatX {
+        0% { opacity: 1; transform: translateX(var(--drift,0)) translateY(0) rotate(0deg); }
+        100% { opacity: 0; transform: translateX(calc(var(--drift,0) + 20px)) translateY(-140px) rotate(360deg); }
+      }
+
       /* Floating hover animation for buttons */
       .float-on-hover {
         transition: transform 200ms ease, box-shadow 200ms ease;
@@ -183,8 +204,61 @@
   </script>
 </header>
 
+<script>
+  // Floating X and O spawner - Global for all pages
+  document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('floatingXs');
+    if (!container) return;
+    
+    function spawnFloating() {
+      const el = document.createElement('div');
+      el.className = 'floating-x';
+      
+      // Randomly choose between X and O
+      el.textContent = Math.random() > 0.5 ? '✕' : 'O';
+      
+      // Random position and animation (cover full viewport)
+      const left = Math.random() * 100; // 0-100% from left
+      const bottom = Math.random() * 80; // 0-80% from bottom
+      const drift = -40 + Math.random() * 80; // -40px to +40px drift
+      const rot = -180 + Math.random() * 360; // -180 to +180 degrees
+      const duration = 3000 + Math.random() * 4000; // 3-7s duration
+
+      el.style.setProperty('--drift', `${drift}px`);
+      el.style.setProperty('--rot', `${rot}deg`);
+      el.style.left = `${left}%`;
+      el.style.bottom = `${bottom}%`;
+      el.style.animationDuration = `${duration}ms`;
+      
+      container.appendChild(el);
+      setTimeout(() => el.remove(), duration);
+    }
+
+    // Initial burst
+    for (let i = 0; i < 10; i++) {
+      setTimeout(spawnFloating, i * 200);
+    }
+
+    // Continuous spawning
+    const interval = setInterval(spawnFloating, 900);
+
+    // Pause when page hidden
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) clearInterval(interval);
+    });
+
+    // Expose start/stop helpers
+    window.startFloatingXs = () => {
+      for (let i = 0; i < 10; i++) setTimeout(spawnFloating, i * 200);
+    };
+  });
+</script>
+
 <!-- Content Block - Each page controls everything below the navbar -->
 <div class="pt-24">
+<!-- Container for floating X and O elements (high z so visible above all content) -->
+<div id="floatingXs" class="fixed inset-0 z-50 pointer-events-none"></div>
+
 {% block content %}
 <!-- Content from extending templates will go here -->
 {% endblock %}

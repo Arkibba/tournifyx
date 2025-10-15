@@ -553,6 +553,12 @@ def host_tournament(request):
 
 @login_required
 def join_tournament(request):
+    # Clear any existing messages to prevent messages from other pages appearing here
+    from django.contrib.messages import get_messages
+    storage = get_messages(request)
+    for message in storage:
+        pass  # This consumes all existing messages
+    
     public_tournaments = Tournament.objects.filter(is_public=True, is_active=True)
     initial_code = request.GET.get('code', '')
     if request.method == 'POST':

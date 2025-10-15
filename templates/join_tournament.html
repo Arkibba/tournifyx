@@ -1,6 +1,68 @@
 {% extends 'base.html' %}
 {% load widget_tweaks %}
 {% block title %}Join a Tournament{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Right side floating image */
+  #apexSideImage {
+    position: fixed;
+    right: 1in;
+    bottom: 0;
+    height: 70vh;
+    width: auto;
+    max-width: 60vw;
+    border-radius: 12px 0 0 0;
+    overflow: hidden;
+    box-shadow: -10px -10px 30px rgba(0, 0, 0, 0.3);
+    transform: translateX(0) scale(1.6);
+    opacity: 1;
+    transition: opacity 550ms ease-out, transform 550ms ease-out;
+    z-index: 5;
+    pointer-events: none;
+    animation: floatApex 4s ease-in-out infinite;
+  }
+
+  @keyframes floatApex {
+    0% { transform: translateX(0) scale(1.6) translateY(0); }
+    50% { transform: translateX(0) scale(1.6) translateY(-15px); }
+    100% { transform: translateX(0) scale(1.6) translateY(0); }
+  }
+
+  /* Left side floating image */
+  #cloveSideImage {
+    position: fixed;
+    left: 1in;
+    bottom: 0;
+    height: 70vh;
+    width: auto;
+    max-width: 60vw;
+    border-radius: 0 12px 0 0;
+    overflow: hidden;
+    box-shadow: 10px -10px 30px rgba(0, 0, 0, 0.3);
+    transform: translateX(0) scale(1.6);
+    opacity: 1;
+    transition: opacity 550ms ease-out, transform 550ms ease-out;
+    z-index: 5;
+    pointer-events: none;
+    animation: floatClove 4.5s ease-in-out infinite;
+  }
+
+  @keyframes floatClove {
+    0% { transform: translateX(0) scale(1.6) translateY(0); }
+    50% { transform: translateX(0) scale(1.6) translateY(-20px); }
+    100% { transform: translateX(0) scale(1.6) translateY(0); }
+  }
+
+  /* Hide on smaller screens */
+  @media (max-width: 768px) {
+    #apexSideImage, #cloveSideImage {
+      display: none;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 {% load static %}
 <!-- Full Screen Background Image -->
@@ -9,82 +71,124 @@
   style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
 ></div>
 
+<!-- Right-side floating apex image -->
+<div id="apexSideImage" aria-hidden="true" class="hidden md:block">
+  <img src="{% static 'images/apexrp.png' %}" alt="" class="w-full h-full object-cover">
+</div>
+
+<!-- Left-side floating clove image -->
+<div id="cloveSideImage" aria-hidden="true" class="hidden md:block">
+  <img src="{% static 'images/clovelp.png' %}" alt="" class="w-full h-full object-cover">
+</div>
+
 <div class="min-h-screen flex items-center justify-center relative z-10 px-4 py-8">
-  <div class="flex flex-col md:flex-row bg-white/10 backdrop-blur-md rounded-lg shadow-lg overflow-hidden w-full max-w-7xl">
-    <!-- Left Panel (Image) -->
-    <div class="w-full md:w-1/2 hidden md:block">
-      <img src="{% static 'images/lp2.jpeg' %}" alt="Join Tournament Image" class="object-cover w-full h-full">
+  <div class="bg-black/70 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <img src="{% static 'images/logo.png' %}" alt="TournifyX Logo" class="w-20 h-20 mx-auto mb-4 drop-shadow-xl" />
+      <h1 class="text-3xl font-extrabold text-white">Join Tournament</h1>
+      <p class="text-gray-300 mt-2">Enter your tournament code to join</p>
     </div>
-    <!-- Right Panel (Form + Content) -->
-  <div class="relative w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center items-center bg-black/50 overflow-y-auto">
-      <!-- Logo Top Middle -->
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="absolute top-8 left-1/2 -translate-x-1/2 w-24 md:w-32 mb-12">
 
-  <div class="flex-1 flex flex-col justify-center items-center w-full mt-24 md:mt-40">
-        {% if messages %}
-          <div class="mb-4 w-full">
-            {% for message in messages %}
-              <div class="px-4 py-2 rounded bg-red-600 text-white mb-2">{{ message }}</div>
-            {% endfor %}
+    {% if messages %}
+      <div class="mb-6">
+        {% for message in messages %}
+          <div class="px-4 py-3 rounded-md {% if message.tags == 'error' %}bg-red-600{% elif message.tags == 'success' %}bg-green-600{% else %}bg-orange-600{% endif %} text-white mb-2">
+            {{ message }}
           </div>
-        {% endif %}
-
-        {% if tournament %}
-          <h2 class="text-3xl font-extrabold mb-4 text-white text-center">Join Public Tournament: {{ tournament.name }}</h2>
-          <form method="post" class="w-full flex flex-col items-center space-y-4">
-            {% csrf_token %}
-            <div class="w-full flex flex-col items-center">
-              <label for="id_name" class="text-lg font-semibold text-white mb-2">Name</label>
-              {{ form.name|add_class:"form-input w-full sm:w-80 md:w-64 text-center text-xl tracking-widest" }}
-            </div>
-            <div class="w-full flex flex-col items-center">
-              <label for="id_ign" class="text-lg font-semibold text-white mb-2">In-Game Name</label>
-              {{ form.ign|add_class:"form-input w-full sm:w-80 md:w-64 text-center text-xl tracking-widest" }}
-            </div>
-            <div class="w-full flex flex-col items-center">
-              <label for="id_contact_number" class="text-lg font-semibold text-white mb-2">Contact Number</label>
-              {{ form.contact_number|add_class:"form-input w-full sm:w-80 md:w-64 text-center text-xl tracking-widest" }}
-            </div>
-            <button type="submit" class="btn btn-primary w-full sm:w-64 mt-8">Join Tournament</button>
-          </form>
-        {% else %}
-          <h2 class="text-3xl font-extrabold mb-4 text-white text-center">Join by Code</h2>
-          <form method="post" class="w-full flex flex-col items-center space-y-4">
-            {% csrf_token %}
-            <div class="w-full flex flex-col items-center">
-              <label for="id_code" class="text-lg font-semibold text-white mb-2">Enter Tournament Code</label>
-              {{ form.code|add_class:"form-input w-64 text-center text-xl tracking-widest" }}
-            </div>
-            <button type="submit" class="btn btn-primary w-64 mt-8">Join Tournament</button>
-          </form>
-          <h2 class="text-2xl font-bold mb-6 text-orange-500 text-center mt-10">Public Tournaments</h2>
-          {% if public_tournaments %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-              {% for tournament in public_tournaments %}
-                <div class="bg-black bg-opacity-70 rounded-xl shadow-lg p-6 flex flex-col justify-between hover:scale-105 transition-transform duration-200">
-                  <div>
-                    <h3 class="text-2xl font-extrabold mb-2 text-white">{{ tournament.name }}</h3>
-                    <p class="text-gray-100 mb-2">{{ tournament.description }}</p>
-                    <div class="mb-2">
-                      <span class="inline-block bg-black bg-opacity-30 text-orange-200 px-3 py-1 rounded-full text-xs font-semibold mr-2">Category: {{ tournament.get_category_display }}</span>
-                      <span class="inline-block bg-black bg-opacity-30 text-orange-200 px-3 py-1 rounded-full text-xs font-semibold">Match Type: {{ tournament.get_match_type_display }}</span>
-                    </div>
-                    <div class="mb-2">
-                      <span class="inline-block bg-black bg-opacity-30 text-orange-200 px-3 py-1 rounded-full text-xs font-semibold mr-2">Capacity: {{ tournament.num_participants }}</span>
-                    </div>
-                  </div>
-                  <div class="mt-4 flex justify-center">
-                    <a href="{% url 'join_public_tournament' tournament.id %}" class="px-6 py-2 bg-orange-500 text-white font-bold rounded-lg shadow hover:bg-orange-600 transition">Join Public Tournament</a>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="text-center text-gray-400">No public tournaments available.</p>
-          {% endif %}
-        {% endif %}
+        {% endfor %}
       </div>
-    </div>
+    {% endif %}
+
+    {% if tournament %}
+      <!-- Tournament Found - Show Join Form -->
+      <div class="text-center mb-6">
+        <div class="bg-gray-800 rounded-lg p-4 mb-6">
+          <h2 class="text-xl font-bold text-green-400 mb-2">Tournament Found!</h2>
+          <h3 class="text-2xl font-extrabold text-white mb-2">{{ tournament.name }}</h3>
+          <p class="text-gray-300 mb-3">{{ tournament.description }}</p>
+          <div class="flex flex-wrap justify-center gap-2 mb-3">
+            <span class="bg-orange-600 text-white px-3 py-1 rounded-full text-sm">{{ tournament.get_category_display }}</span>
+            <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">{{ tournament.get_match_type_display }}</span>
+            <span class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm">{{ tournament.num_participants }} Players</span>
+          </div>
+        </div>
+      </div>
+      
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div>
+          <label for="id_name" class="block text-sm font-semibold text-gray-300 mb-2">Full Name</label>
+          {{ form.name|add_class:"w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" }}
+          {% if form.name.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.name.errors.0 }}</div>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="id_ign" class="block text-sm font-semibold text-gray-300 mb-2">In-Game Name</label>
+          {{ form.ign|add_class:"w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" }}
+          {% if form.ign.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.ign.errors.0 }}</div>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="id_contact_number" class="block text-sm font-semibold text-gray-300 mb-2">Contact Number</label>
+          {{ form.contact_number|add_class:"w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" }}
+          {% if form.contact_number.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.contact_number.errors.0 }}</div>
+          {% endif %}
+        </div>
+        
+        <button type="submit" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+          Join Tournament
+        </button>
+      </form>
+      
+      <div class="mt-6 text-center">
+        <a href="{% url 'join_tournament' %}" class="text-orange-400 hover:text-orange-300 text-sm underline">
+          Join a different tournament
+        </a>
+      </div>
+      
+    {% else %}
+      <!-- Code Entry Form -->
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div>
+          <label for="id_code" class="block text-sm font-semibold text-gray-300 mb-2">Tournament Code</label>
+          <div class="relative">
+            {{ form.code|add_class:"w-full px-4 py-4 bg-gray-800 border border-gray-600 rounded-lg text-white text-center text-xl font-mono tracking-widest focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-500" }}
+            <div class="absolute inset-y-0 right-3 flex items-center">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+          {% if form.code.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.code.errors.0 }}</div>
+          {% endif %}
+          <p class="text-gray-400 text-sm mt-2">Enter the 6-character code provided by the tournament host</p>
+        </div>
+        
+        <button type="submit" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+          Find Tournament
+        </button>
+      </form>
+      
+      <div class="mt-8 pt-6 border-t border-gray-700">
+        <div class="text-center">
+          <p class="text-gray-400 text-sm mb-4">Need to browse public tournaments?</p>
+          <a href="{% url 'public_tournaments' %}" class="inline-flex items-center space-x-2 text-orange-400 hover:text-orange-300 font-semibold">
+            <span>View Public Tournaments</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
