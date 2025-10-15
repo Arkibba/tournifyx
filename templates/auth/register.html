@@ -47,35 +47,49 @@
 
         <h1 class="text-2xl font-bold text-white mb-6">Create an Account</h1>
 
-        <form method="POST" class="w-full space-y-4">
+        <form method="POST" enctype="multipart/form-data" class="w-full space-y-4">
           {% csrf_token %}
 
+          <!-- Profile Picture Upload -->
+          <div class="relative">
+            <label for="id_profile_picture" class="block text-sm font-medium text-gray-300 mb-1">Profile Picture (Optional)</label>
+            <div class="flex items-center space-x-4">
+              <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center border-2 border-dashed border-gray-400">
+                <i class="fa fa-camera text-gray-400 text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <input type="file" id="id_profile_picture" name="profile_picture" accept="image/*"
+                  class="w-full p-2 border-none rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600">
+                <p class="text-xs text-gray-400 mt-1">Max 5MB - JPG, PNG, GIF</p>
+              </div>
+            </div>
+          </div>
 
           <div class="relative">
-            <label for="username" class="block text-sm font-medium text-gray-300 mb-1">Username</label>
+            <label for="id_username" class="block text-sm font-medium text-gray-300 mb-1">Username</label>
             <span class="absolute left-3 top-10 text-gray-400"><i class="fa fa-user"></i></span>
-            <input type="text" id="username" name="username" required
+            <input type="text" id="id_username" name="username" required
               class="w-full p-3 pl-10 border-none rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" placeholder="Enter your username">
           </div>
 
           <div class="relative">
-            <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+            <label for="id_email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
             <span class="absolute left-3 top-10 text-gray-400"><i class="fa fa-envelope"></i></span>
-            <input type="email" id="email" name="email" required
+            <input type="email" id="id_email" name="email" required
               class="w-full p-3 pl-10 border-none rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" placeholder="Enter your email">
           </div>
 
           <div class="relative">
-            <label for="password1" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+            <label for="id_password1" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
             <span class="absolute left-3 top-10 text-gray-400"><i class="fa fa-lock"></i></span>
-            <input type="password" id="password1" name="password1" required
-              class="w-full p-3 pl-10 border-none rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" placeholder="Enter your password">
+            <input type="password" id="id_password1" name="password1" required
+              class="w-full p-3 pl-10 border-none rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" placeholder="Enter any password">
           </div>
 
           <div class="relative">
-            <label for="password2" class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+            <label for="id_password2" class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
             <span class="absolute left-3 top-10 text-gray-400"><i class="fa fa-lock"></i></span>
-            <input type="password" id="password2" name="password2" required
+            <input type="password" id="id_password2" name="password2" required
               class="w-full p-3 pl-10 border-none rounded-xl bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 shadow focus:bg-white/30 transition placeholder-gray-300" placeholder="Confirm your password">
           </div>
 
@@ -102,6 +116,32 @@
       // Apply fade-in effect to both the body and the page content
       document.body.classList.add('opacity-100');
       document.getElementById('page-content').classList.add('opacity-100');
+      
+      // Profile picture preview functionality
+      const profilePictureInput = document.getElementById('id_profile_picture');
+      const previewContainer = document.querySelector('.w-16.h-16.bg-white\\/20');
+      
+      profilePictureInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          // Check file size (5MB limit)
+          if (file.size > 5 * 1024 * 1024) {
+            alert('File too large! Please choose an image smaller than 5MB.');
+            this.value = '';
+            return;
+          }
+          
+          // Show preview
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            previewContainer.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-full">`;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          // Reset to default icon
+          previewContainer.innerHTML = '<i class="fa fa-camera text-gray-400 text-xl"></i>';
+        }
+      });
     });
 
     document.querySelectorAll('a').forEach(link => {

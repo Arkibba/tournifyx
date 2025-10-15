@@ -28,9 +28,116 @@
             <div class="p-4 bg-gray-900 bg-opacity-80 rounded shadow space-y-2">
                 <p><strong>Category:</strong> {{ tournament.category }}</p>
                 <p><strong>Match Type:</strong> {{ tournament.match_type }}</p>
-                <p><strong>Total Participants:</strong> {{ participants.count }}</p>
+                <p><strong>Participants:</strong> {{ current_player_count }} / {{ tournament.num_participants }}</p>
+                
+                <!-- Tournament Status -->
+                {% if tournament_ended %}
+                    <div class="mt-3 p-2 bg-blue-600 rounded text-white text-center">
+                        <i class="fas fa-trophy"></i> Tournament Finished!
+                    </div>
+                {% elif is_tournament_full %}
+                    <div class="mt-3 p-2 bg-green-600 rounded text-white text-center">
+                        <i class="fas fa-check-circle"></i> Tournament Full - Fixtures Ready!
+                    </div>
+                {% else %}
+                    <div class="mt-3 p-2 bg-yellow-600 rounded text-white text-center">
+                        <i class="fas fa-clock"></i> {{ remaining_slots }} slots remaining
+                    </div>
+                {% endif %}
+                
+                <!-- Host Controls - Toggle Tournament Status -->
+                {% if is_host %}
+                    <div class="mt-3">
+                        <form method="post" action="{% url 'toggle_tournament_status' tournament.id %}" class="inline">
+                            {% csrf_token %}
+                            {% if tournament_ended %}
+                                <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors">
+                                    <i class="fas fa-play"></i> Mark as Active
+                                </button>
+                            {% else %}
+                                <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+                                    <i class="fas fa-flag-checkered"></i> Mark as Finished
+                                </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                {% endif %}
             </div>
         </div>
+
+        <!-- Leave Tournament Button (players can leave anytime) -->
+        <!-- DEBUG: can_leave = {{ can_leave }} -->
+        {% if can_leave %}
+            {% if user_has_pending_request %}
+                <!-- Show pending request status -->
+                <div class="text-center bg-gray-900 bg-opacity-80 rounded-lg p-6 border-2 border-yellow-500">
+                    <h3 class="text-xl font-bold text-yellow-400 mb-3">
+                        <i class="fas fa-clock"></i> Leave Request Pending
+                    </h3>
+                    <p class="text-gray-300 mb-2">Your leave request is awaiting host approval.</p>
+                    <p class="text-sm text-gray-400">The host will review your request shortly.</p>
+                </div>
+            {% else %}
+                <!-- Show leave button -->
+                <div class="text-center bg-gray-900 bg-opacity-80 rounded-lg p-6 border-2 border-orange-500">
+                    <h3 class="text-xl font-bold text-orange-400 mb-3">
+                        <i class="fas fa-sign-out-alt"></i> Leave Tournament
+                    </h3>
+                    {% if tournament.is_finished %}
+                        <p class="text-gray-300 mb-4">This tournament has ended. You can leave freely.</p>
+                    {% else %}
+                        <p class="text-gray-300 mb-4">Request to leave this tournament. The host must approve before you can exit.</p>
+                    {% endif %}
+                    <button type="button" onclick="showLeaveConfirmation()" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-sign-out-alt"></i> {% if tournament.is_finished %}Leave Tournament{% else %}Request to Leave{% endif %}
+                    </button>
+                </div>
+
+                <!-- Confirmation Modal -->
+                <div id="leaveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+                    <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-auto">
+                        <div class="text-center">
+                            <div class="mb-4">
+                                <i class="fas fa-exclamation-triangle text-orange-400 text-4xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2">
+                                {% if tournament.is_finished %}Confirm Leave Tournament{% else %}Request to Leave Tournament{% endif %}
+                            </h3>
+                            {% if tournament.is_finished %}
+                                <p class="text-gray-300 mb-6">Are you sure you want to leave "{{ tournament.name }}"? This action cannot be undone and you will lose access to the tournament history.</p>
+                            {% else %}
+                                <p class="text-gray-300 mb-4">Submit a request to leave "{{ tournament.name }}". The host will review your request.</p>
+                                <form method="post" action="{% url 'leave_tournament' tournament.id %}" id="leaveRequestForm">
+                                    {% csrf_token %}
+                                    <div class="mb-4">
+                                        <label for="reason" class="block text-left text-sm text-gray-300 mb-2">Reason (optional):</label>
+                                        <textarea id="reason" name="reason" rows="3" class="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Why do you want to leave?"></textarea>
+                                    </div>
+                                </form>
+                            {% endif %}
+                            
+                            <div class="flex gap-4">
+                                <button type="button" onclick="hideLeaveConfirmation()" class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </button>
+                                {% if tournament.is_finished %}
+                                    <form method="post" action="{% url 'leave_tournament' tournament.id %}" class="flex-1">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+                                            <i class="fas fa-check"></i> Confirm Leave
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button type="submit" form="leaveRequestForm" class="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors">
+                                        <i class="fas fa-paper-plane"></i> Submit Request
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
 
         <!-- Participants -->
         <div>
@@ -44,11 +151,66 @@
             </ul>
         </div>
 
+        <!-- Leave Requests (Host Only) -->
+        {% if is_host and pending_leave_requests %}
+            <div class="bg-gradient-to-r from-yellow-900 to-orange-900 bg-opacity-80 rounded-lg p-6 border-2 border-yellow-500">
+                <h3 class="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    Pending Leave Requests 
+                    <span class="bg-yellow-500 text-gray-900 text-sm px-2 py-1 rounded-full">{{ pending_leave_requests|length }}</span>
+                </h3>
+                <div class="space-y-3">
+                    {% for leave_req in pending_leave_requests %}
+                        <div class="bg-gray-800 rounded-lg p-4 border border-yellow-600">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div class="flex-1">
+                                    <h4 class="text-white font-semibold text-lg mb-1">
+                                        <i class="fas fa-user"></i> {{ leave_req.player.name }}
+                                    </h4>
+                                    {% if leave_req.reason %}
+                                        <p class="text-gray-300 text-sm mb-2">
+                                            <i class="fas fa-comment"></i> <strong>Reason:</strong> {{ leave_req.reason }}
+                                        </p>
+                                    {% endif %}
+                                    <p class="text-gray-400 text-xs">
+                                        <i class="fas fa-clock"></i> Requested {{ leave_req.created_at|timesince }} ago
+                                    </p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <form method="post" action="{% url 'approve_leave_request' leave_req.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'reject_leave_request' leave_req.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <p class="text-sm text-yellow-200 mt-4">
+                    <i class="fas fa-info-circle"></i> Review these requests to allow players to leave the tournament.
+                </p>
+            </div>
+        {% endif %}
+
         <!-- Toggle Fixtures Button -->
         <div class="text-center">
-            <button id="toggle-fixtures-btn" class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg">
-                Show Fixtures
-            </button>
+            {% if matches %}
+                <button id="toggle-fixtures-btn" class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg animate-pulse">
+                    <i class="fas fa-calendar-check"></i> View Fixtures ({{ matches|length }} matches)
+                </button>
+            {% else %}
+                <button id="toggle-fixtures-btn" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-lg cursor-not-allowed" disabled>
+                    <i class="fas fa-calendar-times"></i> No Fixtures Available
+                </button>
+            {% endif %}
         </div>
 
         <!-- Fixtures Section -->
@@ -63,11 +225,11 @@
                         </button>
                     {% endif %}
 
-                    {% if tournament.match_type == "league" %}
+                    {% if tournament.match_type == "league" or tournament.match_type == "knockout" %}
                         <form action="{% url 'regenerate_fixtures' tournament.id %}" method="post">
                             {% csrf_token %}
-                            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-4 py-2 rounded-lg">
-                                Regenerate Fixtures
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg">
+                                <i class="fas fa-sync-alt"></i> Refresh Dashboard
                             </button>
                         </form>
                     {% endif %}
@@ -123,7 +285,7 @@
         </div>
 
         <!-- Knockout Bracket -->
-        {% if tournament.type == "Knockout" and knockout_stages %}
+        {% if tournament.match_type == "knockout" and knockout_stages %}
             <div>
                 <h2 class="text-2xl font-semibold text-orange-400 mb-4 text-center">Knockout Bracket</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -227,13 +389,40 @@
 <!-- Scripts -->
 <script src="/static/js/bracket.js"></script>
 <script>
+// Leave tournament modal functions (GLOBAL scope for onclick)
+function showLeaveConfirmation() {
+    document.getElementById('leaveModal').classList.remove('hidden');
+}
+
+function hideLeaveConfirmation() {
+    document.getElementById('leaveModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('leaveModal');
+    if (event.target === modal) {
+        hideLeaveConfirmation();
+    }
+});
+
+// Other page functionality
 document.addEventListener("DOMContentLoaded", function () {
     const toggleBtn = document.getElementById('toggle-fixtures-btn');
     const fixturesPanel = document.getElementById('fixtures-panel');
 
+    // Auto-show fixtures if tournament is full and has matches
+    {% if is_tournament_full and matches %}
+        fixturesPanel.classList.remove('hidden');
+        toggleBtn.textContent = 'Hide Fixtures';
+    {% endif %}
+
     toggleBtn.addEventListener('click', function () {
-        fixturesPanel.classList.toggle('hidden');
-        toggleBtn.textContent = fixturesPanel.classList.contains('hidden') ? 'Show Fixtures' : 'Hide Fixtures';
+        // Only allow toggle if fixtures are available
+        {% if matches %}
+            fixturesPanel.classList.toggle('hidden');
+            toggleBtn.textContent = fixturesPanel.classList.contains('hidden') ? 'View Fixtures ({{ matches|length }} matches)' : 'Hide Fixtures';
+        {% endif %}
     });
 
     // Winner/Draw toggle logic

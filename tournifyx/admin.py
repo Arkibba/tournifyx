@@ -8,6 +8,7 @@ admin.site.register(Tournament)
 admin.site.register(TournamentParticipant)
 admin.site.register(Player)
 admin.site.register(Match)
+admin.site.register(LeaveRequest)
 
 
 admin.site.index_title = "TournifyX Admin"

@@ -55,6 +55,7 @@ class Tournament(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
     is_public = models.BooleanField(default=False)  # Add this line
     registration_deadline = models.DateTimeField(null=True, blank=True)
+    is_finished = models.BooleanField(default=False)  # Host can manually mark tournament as finished
     
 
     def __str__(self):
@@ -77,8 +78,11 @@ class TournamentParticipant(models.Model):
 class Player(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+    ign = models.CharField(max_length=100, null=True, blank=True)  # In-Game Name
+    contact_number = models.CharField(max_length=20, null=True, blank=True)  # Contact Number
     team_name = models.CharField(max_length=100, null=True, blank=True)  # Make this optional
     added_by = models.ForeignKey(HostProfile, on_delete=models.SET_NULL, null=True)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Link to user who joined
 
     def __str__(self):
         return f"{self.name} - {self.tournament.name}"
@@ -125,4 +129,27 @@ class Match(models.Model):
     is_draw = models.BooleanField(default=False)
 
     def _str_(self):
-        return f"{self.player1.name} vs {self.player2.name} ({self.stage})"
+        return f"{self.player1.name} vs {self.player2.name} ({self.stage})"
+
+
+class LeaveRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    reason = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(HostProfile, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('tournament', 'player')
+    
+    def __str__(self):
+        return f"{self.player.name} - Leave Request ({self.status})"
