@@ -2,227 +2,186 @@
 {% load static %}
 
 {% block content %}
+<!-- Background image and overlay -->
+<div class="fixed inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static "images/bg.png" %}');"></div>
+<div class="fixed inset-0 z-0 bg-black/60" aria-hidden="true"></div>
 
-<div class="min-h-screen bg-gray-900 text-white py-12">
-  <div class="w-full max-w-5xl mx-auto">
-  <div class="relative h-56 rounded-b-lg overflow-hidden shadow-inner">
-        {% if user_profile and user_profile.cover_photo %}
-          <img src="{{ user_profile.cover_photo.url }}" alt="cover" class="w-full h-full object-cover opacity-90">
-          <div class="absolute inset-0 bg-black/40"></div>
-        {% else %}
-          <img src="{% static 'images/bg2.png' %}" alt="cover" class="w-full h-full object-cover opacity-85">
-          <div class="absolute inset-0 bg-black/35"></div>
-        {% endif %}
-
-  <div class="absolute left-0 right-0 bottom-0 h-16 bg-gray-800/90"></div>
-
-        <div class="absolute right-6 top-4">
+<div class="min-h-screen py-12 px-4 relative z-10">
+  <div class="max-w-4xl mx-auto">
+    <div class="relative rounded-xl overflow-hidden shadow-lg bg-white/5">
+      <!-- Avatar and Info -->
+      <div class="px-6 flex flex-col items-center pt-12">
+        <div class="relative">
+          <div class="w-36 h-36 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center shadow-inner border-4 border-white/10">
+            {% if user_profile and user_profile.avatar %}
+              <img src="{{ user_profile.avatar.url }}" alt="avatar" class="w-32 h-32 rounded-full object-cover">
+            {% else %}
+              <img src="{% static 'images/fallback.jpg' %}" alt="avatar" class="w-32 h-32 rounded-full object-cover">
+            {% endif %}
+          </div>
           {% if request.user.is_authenticated and request.user == profile_user %}
-            <form method="post" enctype="multipart/form-data" id="coverForm">
+            <form method="post" enctype="multipart/form-data" id="avatarForm" class="absolute -bottom-2 -left-2">
               {% csrf_token %}
-              <input type="file" name="cover" id="coverInput" accept="image/*" class="hidden" onchange="document.getElementById('coverForm').submit()">
-              <button type="button" onclick="document.getElementById('coverInput').click()" class="bg-gray-700 text-white p-3 rounded-full shadow-md"><i class="fa fa-camera"></i></button>
+              <input type="file" id="avatarInput" name="avatar" accept="image/*" class="hidden" onchange="document.getElementById('avatarForm').submit()">
+              <button type="button" onclick="document.getElementById('avatarInput').click()" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shadow border border-gray-700"><i class="fa fa-camera text-gray-800 dark:text-white"></i></button>
+            </form>
+          {% endif %}
+        </div>
+        <div class="mt-4 text-center">
+          <h1 class="text-2xl font-bold text-white">{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+          <div class="mt-1">
+            <span class="text-lg text-orange-400 font-semibold">{{ profile_user.username }}</span>
+            <span class="text-sm text-gray-300"> • Member since {{ profile_user.date_joined|date:'F Y' }}</span>
+          </div>
+          {% if not request.user.is_authenticated or request.user != profile_user %}
+            <div class="mt-3 flex justify-center gap-2">
+              <button class="btn btn-primary">Follow</button>
+              <button class="btn btn-secondary">Message</button>
+            </div>
+          {% endif %}
+        </div>
+        <!-- Bio Section -->
+        <div class="mt-6 w-full max-w-xl mx-auto">
+          <div id="bioDisplay">
+            {% if user_profile and user_profile.bio %}
+              <p class="text-gray-100">{{ user_profile.bio }}</p>
+            {% else %}
+              <p class="text-gray-400">This user hasn't added a bio yet.</p>
+            {% endif %}
+          </div>
+          {% if request.user.is_authenticated and request.user == profile_user %}
+            <div class="mt-3">
+              <button id="editBioBtn" class="btn btn-secondary">Edit Bio</button>
+            </div>
+            <form id="bioForm" method="post" class="mt-3 hidden">
+              {% csrf_token %}
+              <textarea name="bio" id="bioInput" rows="4" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" placeholder="Write a short bio...">{% if user_profile and user_profile.bio %}{{ user_profile.bio }}{% endif %}</textarea>
+              <div class="mt-2 flex space-x-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" id="cancelBioBtn" class="btn btn-secondary">Cancel</button>
+              </div>
             </form>
           {% endif %}
         </div>
       </div>
-
-    <div class="-mt-16 px-4">
-      <div class="bg-gray-800 rounded-lg p-6 shadow-lg text-white">
-        <div class="flex flex-col md:flex-row md:items-center md:space-x-6">
-          <div class="flex-shrink-0 -mt-20 md:mt-0">
-            <div class="relative">
-              <div class="w-40 h-40 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center shadow-inner border-4 border-gray-800">
-                {% if user_profile and user_profile.avatar %}
-                  <img src="{{ user_profile.avatar.url }}" alt="avatar" class="w-36 h-36 rounded-full object-cover">
-                {% else %}
-                  <img src="{% static 'images/fallback.jpg' %}" alt="avatar" class="w-36 h-36 rounded-full object-cover">
-                {% endif %}
+      <!-- Stats -->
+      <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 px-6">
+        <div class="bg-white/5 rounded-lg p-5 text-center shadow">
+          <div class="text-3xl font-bold text-white">{{ tournaments_organized }}</div>
+          <div class="text-sm text-gray-300">Tournaments organized</div>
+        </div>
+        <div class="bg-white/5 rounded-lg p-5 text-center shadow">
+          <div class="text-3xl font-bold text-white">{{ tournaments_participated }}</div>
+          <div class="text-sm text-gray-300">Tournaments participated</div>
+        </div>
+        <div class="bg-white/5 rounded-lg p-5 text-center shadow">
+          <div class="text-3xl font-bold text-white">{{ matches_played }}</div>
+          <div class="text-sm text-gray-300">Matches played</div>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div class="mt-8 px-6">
+        <nav class="border-b border-gray-700 mb-6 flex space-x-8" aria-label="Tabs">
+          <a href="#overview" class="whitespace-nowrap py-4 px-1 border-b-2 border-orange-500 text-sm font-medium text-orange-400" aria-current="page">Overview</a>
+        </nav>
+        <!-- Top Finishes -->
+        <div id="overview">
+          <h3 class="text-lg font-semibold text-orange-400 mb-3">Top Finishes</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="p-4 bg-white/5 rounded flex items-center">
+              <div class="w-12 h-12 rounded flex items-center justify-center mr-4">
+                <img src="{% static 'images/winner.png' %}" alt="1st" class="w-10 h-10 object-contain">
               </div>
-
-              <!-- camera badge overlapping avatar (bottom-left) -->
-              {% if request.user.is_authenticated and request.user == profile_user %}
-                <form method="post" enctype="multipart/form-data" id="avatarForm" class="absolute -bottom-2 -left-2">
-                  {% csrf_token %}
-                  <input type="file" id="avatarInput" name="avatar" accept="image/*" class="hidden" onchange="document.getElementById('avatarForm').submit()">
-                  <button type="button" onclick="document.getElementById('avatarInput').click()" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shadow border border-gray-700"><i class="fa fa-camera text-gray-800 dark:text-white"></i></button>
-                </form>
-              {% endif %}
-            </div>
-          </div>
-
-          <div class="flex-1 mt-4 md:mt-0">
-            <div class="flex items-center justify-between">
               <div>
-                  <h1 class="text-2xl font-semibold text-white">{{ profile_user.get_full_name|default:profile_user.username }}</h1>
-                  
-                  <div class="mt-1">
-                    <span class="text-lg text-orange-400 font-semibold">{{ profile_user.username }}</span>
-                    <span class="text-sm text-gray-300"> • Member since {{ profile_user.date_joined|date:'F Y' }}</span>
-                  </div>
-
-                  <!-- <div class="text-sm text-gray-300 mt-1">{{ profile_user.username }} • Member since {{ profile_user.date_joined|date:'F Y' }}</div> -->
-              </div>
-
-              <div class="flex items-center space-x-3">
-                {% if not request.user.is_authenticated or request.user != profile_user %}
-                  <button class="px-4 py-2 bg-blue-600 text-white rounded shadow">Follow</button>
-                  <button class="px-3 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded">Message</button>
-                {% endif %}
+                <div class="text-2xl font-bold text-white">{{ top_firsts }}</div>
+                <div class="text-sm text-gray-300">Tournaments won</div>
               </div>
             </div>
-
-            <div class="mt-4">
-              <div id="bioDisplay">
-                {% if user_profile and user_profile.bio %}
-                  <p class="text-gray-100">{{ user_profile.bio }}</p>
-                {% else %}
-                  <p class="text-gray-400">This user hasn't added a bio yet.</p>
-                {% endif %}
+            <div class="p-4 bg-white/5 rounded flex items-center">
+              <div class="w-12 h-12 rounded flex items-center justify-center mr-4">
+                <img src="{% static 'images/second.png' %}" alt="2nd" class="w-10 h-10 object-contain">
               </div>
-
-              {% if request.user.is_authenticated and request.user == profile_user %}
-                <div class="mt-3">
-                  <button id="editBioBtn" class="px-3 py-1 bg-gray-700 text-white rounded">Edit Bio</button>
-                </div>
-
-                <form id="bioForm" method="post" class="mt-3 hidden">
-                  {% csrf_token %}
-                  <textarea name="bio" id="bioInput" rows="4" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" placeholder="Write a short bio...">{% if user_profile and user_profile.bio %}{{ user_profile.bio }}{% endif %}</textarea>
-                  <div class="mt-2 flex space-x-2">
-                    <button type="submit" class="px-4 py-2 bg-orange-500 text-white rounded">Save</button>
-                    <button type="button" id="cancelBioBtn" class="px-4 py-2 bg-gray-700 text-white rounded">Cancel</button>
-                  </div>
-                </form>
-              {% endif %}
+              <div>
+                <div class="text-2xl font-bold text-white">{{ top_seconds }}</div>
+                <div class="text-sm text-gray-300">Finished 2nd</div>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-gray-700 rounded p-4 text-center">
-            <div class="text-3xl font-bold text-white">{{ tournaments_organized }}</div>
-            <div class="text-sm text-gray-300">Tournaments organized</div>
-          </div>
-          <div class="bg-gray-700 rounded p-4 text-center">
-            <div class="text-3xl font-bold text-white">{{ tournaments_participated }}</div>
-            <div class="text-sm text-gray-300">Tournaments participated</div>
-          </div>
-          <div class="bg-gray-700 rounded p-4 text-center">
-            <div class="text-3xl font-bold text-white">{{ matches_played }}</div>
-            <div class="text-sm text-gray-300">Matches played</div>
-          </div>
-        </div>
-
-        <div class="mt-6">
-          <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-              <a href="#overview" class="whitespace-nowrap py-4 px-1 border-b-2 border-orange-500 text-sm font-medium text-orange-600" aria-current="page">Overview</a>
-              <!-- <a href="#tournaments" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Tournaments</a> -->
-              <!-- <a href="#activity" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Activity</a> -->
-            </nav>
-          </div>
-
-          <div id="overview" class="mt-6">
-            <h3 class="text-lg font-semibold text-orange-400 mb-3">Top Finishes</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div class="p-4 bg-gray-700 rounded flex items-center">
-                <div class="w-12 h-12 rounded flex items-center justify-center mr-4">
-                  <img src="{% static 'images/winner.png' %}" alt="1st" class="w-10 h-10 object-contain">
-                </div>
+          <!-- Recent Tournaments -->
+          <h3 class="text-lg font-semibold text-orange-400 mt-8 mb-3">Recent Tournaments</h3>
+          <div class="space-y-3">
+            {% for t in recent_tournaments %}
+              <div class="p-4 bg-white/5 rounded flex items-center justify-between">
                 <div>
-                  <div class="text-2xl font-bold text-white">{{ top_firsts }}</div>
-                  <div class="text-sm text-gray-300">Tournaments won</div>
+                  <div class="font-semibold text-white">{{ t.name }}</div>
+                  <div class="text-sm text-gray-300">{{ t.game }} • {{ t.created_at|date:'M d, Y' }}</div>
                 </div>
+                <a href="/tournament/{{ t.id }}/" class="text-orange-400 font-semibold">View</a>
               </div>
-              <div class="p-4 bg-gray-700 rounded flex items-center">
-                <div class="w-12 h-12 rounded flex items-center justify-center mr-4">
-                  <img src="{% static 'images/second.png' %}" alt="2nd" class="w-10 h-10 object-contain">
-                </div>
-                <div>
-                  <div class="text-2xl font-bold text-white">{{ top_seconds }}</div>
-                  <div class="text-sm text-gray-300">Finished 2nd</div>
-                </div>
-              </div>
-            </div>
-
-            <h3 class="text-lg font-semibold text-orange-400 mt-8 mb-3">Recent Tournaments</h3>
-            <div class="space-y-3">
-              {% for t in recent_tournaments %}
-                <div class="p-4 bg-gray-700 rounded flex items-center justify-between">
-                  <div>
-                    <div class="font-semibold text-white">{{ t.name }}</div>
-                    <div class="text-sm text-gray-300">{{ t.game }} • {{ t.created_at|date:'M d, Y' }}</div>
-                  </div>
-                  <a href="/tournament/{{ t.id }}/" class="text-orange-500">View</a>
-                </div>
-              {% empty %}
-                <div class="p-4 bg-gray-700 rounded text-gray-300">No recent tournaments.</div>
-              {% endfor %}
-            </div>
+            {% empty %}
+              <div class="p-4 bg-white/5 rounded text-gray-300">No recent tournaments.</div>
+            {% endfor %}
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
+{% endblock %}
 
-    {% endblock %}
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const editBtn = document.getElementById('editBioBtn');
+    const bioForm = document.getElementById('bioForm');
+    const bioDisplay = document.getElementById('bioDisplay');
+    const cancelBtn = document.getElementById('cancelBioBtn');
 
-    {% block extra_js %}
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const editBtn = document.getElementById('editBioBtn');
-        const bioForm = document.getElementById('bioForm');
-        const bioDisplay = document.getElementById('bioDisplay');
-        const cancelBtn = document.getElementById('cancelBioBtn');
-
-        if (editBtn) {
-          editBtn.addEventListener('click', function () {
-            bioForm.classList.remove('hidden');
-            editBtn.classList.add('hidden');
-            bioDisplay.classList.add('hidden');
-          });
-        }
-        if (cancelBtn) {
-          cancelBtn.addEventListener('click', function () {
-            bioForm.classList.add('hidden');
-            editBtn.classList.remove('hidden');
-            bioDisplay.classList.remove('hidden');
-          });
-        }
-
-        // AJAX submit for bio form
-        if (bioForm) {
-          bioForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(bioForm);
-            const csrfInput = bioForm.querySelector('input[name="csrfmiddlewaretoken"]');
-            const csrfToken = csrfInput ? csrfInput.value : null;
-            fetch(window.location.href, {
-              method: 'POST',
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrfToken
-              },
-              body: formData,
-              credentials: 'same-origin'
-            }).then(r => r.json()).then(data => {
-              if (data && data.status === 'ok') {
-                // update bio display
-                bioDisplay.innerHTML = data.bio ? ('<p class="text-gray-100">' + (data.bio) + '</p>') : ('<p class="text-gray-400">This user hasn\'t added a bio yet.</p>');
-                // hide form, show edit button
-                bioForm.classList.add('hidden');
-                if (editBtn) editBtn.classList.remove('hidden');
-                bioDisplay.classList.remove('hidden');
-              } else {
-                window.location.reload();
-              }
-            }).catch(err => {
-              console.error('Bio update failed', err);
-              window.location.reload();
-            });
-          });
-        }
+    if (editBtn) {
+      editBtn.addEventListener('click', function () {
+        bioForm.classList.remove('hidden');
+        editBtn.classList.add('hidden');
+        bioDisplay.classList.add('hidden');
       });
-    </script>
-    {% endblock %}
+    }
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        bioForm.classList.add('hidden');
+        editBtn.classList.remove('hidden');
+        bioDisplay.classList.remove('hidden');
+      });
+    }
 
+    // AJAX submit for bio form
+    if (bioForm) {
+      bioForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(bioForm);
+        const csrfInput = bioForm.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrfToken = csrfInput ? csrfInput.value : null;
+        fetch(window.location.href, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+          },
+          body: formData,
+          credentials: 'same-origin'
+        }).then(r => r.json()).then(data => {
+          if (data && data.status === 'ok') {
+            bioDisplay.innerHTML = data.bio ? ('<p class="text-gray-100">' + (data.bio) + '</p>') : ('<p class="text-gray-400">This user hasn\'t added a bio yet.</p>');
+            bioForm.classList.add('hidden');
+            if (editBtn) editBtn.classList.remove('hidden');
+            bioDisplay.classList.remove('hidden');
+          } else {
+            window.location.reload();
+          }
+        }).catch(err => {
+          console.error('Bio update failed', err);
+          window.location.reload();
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}
