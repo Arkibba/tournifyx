@@ -29,35 +29,116 @@
     </form>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% if tournaments %}
-        {% for t in tournaments %}
-          <article class="bg-white/5 rounded-xl p-5 sm:p-8 shadow-sm overflow-hidden">
-            <div class="flex justify-between items-start gap-3">
-              <div class="min-w-0">
+      {% if tournaments_with_info %}
+        {% for item in tournaments_with_info %}
+          {% with t=item.tournament %}
+          <article class="bg-white/5 rounded-xl p-5 sm:p-8 shadow-sm overflow-hidden border-2 {% if item.status == 'finished' %}border-gray-600{% elif item.is_full %}border-red-500{% elif item.status == 'open' %}border-green-500{% else %}border-blue-500{% endif %}">
+            <div class="flex justify-between items-start gap-3 mb-4">
+              <div class="min-w-0 flex-1">
                 <h3 class="text-lg sm:text-xl font-bold text-white truncate">{{ t.name }}</h3>
-                <p class="text-sm sm:text-base text-gray-300 mt-1 truncate">{{ t.description|truncatechars:120 }}</p>
-                <div class="mt-3 flex flex-wrap gap-2 text-xs sm:text-sm">
-                  <span class="bg-gray-800/60 px-2 py-1 rounded font-semibold">{{ t.category|title }}</span>
-                  <span class="bg-gray-800/60 px-2 py-1 rounded">{{ t.match_type }}</span>
-                  <span class="bg-gray-800/60 px-2 py-1 rounded">{{ t.num_participants }} / {{ t.capacity }}</span>
+                <p class="text-sm sm:text-base text-gray-300 mt-1 line-clamp-2">{{ t.description|truncatechars:100 }}</p>
+              </div>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="mb-3">
+              {% if item.status == 'finished' %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-700 text-gray-300">
+                  <i class="fas fa-flag-checkered mr-1"></i> Finished
+                </span>
+              {% elif item.is_full %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-600 text-white">
+                  <i class="fas fa-lock mr-1"></i> Full
+                </span>
+              {% elif item.status == 'open' %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-600 text-white animate-pulse">
+                  <i class="fas fa-circle mr-1"></i> Open
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white">
+                  <i class="fas fa-star mr-1"></i> New
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Tournament Info -->
+            <div class="space-y-2 mb-4">
+              <!-- Players Count -->
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-400">
+                  <i class="fas fa-users mr-1"></i> Players:
+                </span>
+                <span class="font-semibold text-white">
+                  {{ item.current_players }} / {{ item.capacity }}
+                  {% if not item.is_full and not t.is_finished %}
+                    <span class="text-green-400 text-xs ml-1">({{ item.spots_remaining }} left)</span>
+                  {% endif %}
+                </span>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                <div class="bg-gradient-to-r {% if item.is_full %}from-red-500 to-red-600{% else %}from-green-500 to-green-600{% endif %} h-2 transition-all duration-300" 
+                     style="width: {% widthratio item.current_players item.capacity 100 %}%">
                 </div>
               </div>
-              <div class="flex flex-col items-end gap-3">
+
+              <!-- Category & Match Type -->
+              <div class="flex flex-wrap gap-2 text-xs sm:text-sm pt-2">
+                <span class="bg-gray-800/80 px-2 py-1 rounded font-semibold text-orange-300">
+                  <i class="fas fa-tag mr-1"></i>{{ t.category|title }}
+                </span>
+                <span class="bg-gray-800/80 px-2 py-1 rounded text-gray-300">
+                  <i class="fas fa-trophy mr-1"></i>{{ t.match_type|title }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Price & Actions -->
+            <div class="flex items-center justify-between pt-3 border-t border-gray-700">
+              <div>
                 {% if t.is_paid %}
-                  <div class="text-sm text-orange-400 font-semibold">Paid • ${{ t.price }}</div>
+                  <div class="text-sm text-orange-400 font-semibold">
+                    <i class="fas fa-dollar-sign"></i> ${{ t.price }}
+                  </div>
                 {% else %}
-                  <div class="text-sm text-green-400 font-semibold">Free</div>
+                  <div class="text-sm text-green-400 font-semibold">
+                    <i class="fas fa-check-circle"></i> Free
+                  </div>
                 {% endif %}
-                <div class="flex gap-2">
-                  <a href="{% url 'join_public_tournament' t.id %}" class="btn btn-primary">Join</a>
-                  <button type="button" data-code="{{ t.code }}" class="btn btn-secondary share-btn">Share</button>
-                </div>
+              </div>
+              <div class="flex gap-2">
+                {% if not t.is_finished %}
+                  {% if item.is_full %}
+                    <button disabled class="px-4 py-2 bg-gray-600 text-gray-400 rounded-lg cursor-not-allowed text-sm">
+                      <i class="fas fa-lock mr-1"></i> Full
+                    </button>
+                  {% else %}
+                    <a href="{% url 'join_public_tournament' t.id %}" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors text-sm font-semibold">
+                      <i class="fas fa-sign-in-alt mr-1"></i> Join
+                    </a>
+                  {% endif %}
+                {% else %}
+                  <a href="{% url 'tournament_dashboard' t.id %}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-semibold">
+                    <i class="fas fa-eye mr-1"></i> View
+                  </a>
+                {% endif %}
+                <button type="button" data-code="{{ t.code }}" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm share-btn">
+                  <i class="fas fa-share-alt"></i>
+                </button>
               </div>
             </div>
           </article>
+          {% endwith %}
         {% endfor %}
       {% else %}
-        <div class="col-span-full text-center text-gray-400 py-12">No public tournaments available.</div>
+        <div class="col-span-full text-center py-12">
+          <div class="text-gray-400 text-6xl mb-4">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-300 mb-2">No Public Tournaments Available</h3>
+          <p class="text-gray-500">Check back later or create your own tournament!</p>
+        </div>
       {% endif %}
     </div>
 

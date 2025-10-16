@@ -171,7 +171,11 @@ def join_public_tournament(request, tournament_id):
                         host_profile = HostProfile.objects.get(user=request.user)
                         if tournament.created_by == host_profile:
                             messages.error(request, 'You cannot join a tournament that you created.')
-                            return render(request, 'join_tournament.html', {'form': form, 'tournament': tournament})
+                            return render(request, 'join_tournament.html', {
+                                'form': form, 
+                                'tournament': tournament,
+                                'is_own_tournament': True  # Flag to show modal
+                            })
                     except HostProfile.DoesNotExist:
                         pass  # User is not a host, they can join
                     
@@ -718,7 +722,8 @@ def join_tournament(request):
                                     'form': form,
                                     'join_form': join_form,
                                     'tournament': tournament,
-                                    'public_tournaments': public_tournaments
+                                    'public_tournaments': public_tournaments,
+                                    'is_own_tournament': True  # Flag to show modal
                                 })
                         except HostProfile.DoesNotExist:
                             pass  # User is not a host, they can join
@@ -1201,9 +1206,40 @@ def public_tournaments(request):
 
     # Featured tournaments: top 2 by most recent or by participants
     featured_tournaments = tournaments.order_by('-id')[:2]
+    
+    # Add player count and status for each tournament
+    tournaments_with_info = []
+    for t in tournaments:
+        current_players = Player.objects.filter(tournament=t).count()
+        capacity = t.num_participants
+        is_full = current_players >= capacity
+        
+        # Determine status
+        if t.is_finished:
+            status = 'finished'
+            status_color = 'gray'
+        elif is_full:
+            status = 'full'
+            status_color = 'red'
+        elif current_players > 0:
+            status = 'open'
+            status_color = 'green'
+        else:
+            status = 'new'
+            status_color = 'blue'
+        
+        tournaments_with_info.append({
+            'tournament': t,
+            'current_players': current_players,
+            'capacity': capacity,
+            'is_full': is_full,
+            'status': status,
+            'status_color': status_color,
+            'spots_remaining': capacity - current_players
+        })
 
     return render(request, 'public_tournaments.html', {
-        'tournaments': tournaments,
+        'tournaments_with_info': tournaments_with_info,
         'featured_tournaments': featured_tournaments,
     })
 
