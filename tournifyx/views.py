@@ -676,7 +676,7 @@ def join_tournament(request):
                 try:
                     tournament = Tournament.objects.get(code=code)
                     # Check if user already joined
-                    user_profile = UserProfile.objects.get(user=request.user)
+                    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
                     already_joined = TournamentParticipant.objects.filter(
                         tournament=tournament,
                         user_profile=user_profile
@@ -685,25 +685,24 @@ def join_tournament(request):
                         messages.error(request, 'You have already joined this tournament.')
                         tournament = None
                     else:
-                        # Show join form with player details
-                        join_form = PublicTournamentJoinForm()
+                        # Show tournament confirmation (no need for join form anymore)
                         return render(request, 'join_tournament.html', {
                             'form': form,
-                            'join_form': join_form,
                             'tournament': tournament,
                             'public_tournaments': public_tournaments
                         })
                 except Tournament.DoesNotExist:
                     messages.error(request, 'Invalid tournament code!')
-        elif 'join_tournament' in request.POST or ('name' in request.POST and 'ign' in request.POST):
-            # Handle actual joining with player details
-            join_form = PublicTournamentJoinForm(request.POST)
+        elif 'join_tournament' in request.POST:
+            # Handle actual joining - use profile data directly
             tournament_code = request.POST.get('tournament_code')
             
-            if join_form.is_valid() and tournament_code:
+            if tournament_code:
                 try:
                     tournament = Tournament.objects.get(code=tournament_code)
-                    user_profile = UserProfile.objects.get(user=request.user)
+                    
+                    # Get or create UserProfile
+                    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
                     
                     # Check if user already joined
                     already_joined = TournamentParticipant.objects.filter(
@@ -720,7 +719,6 @@ def join_tournament(request):
                                 messages.error(request, 'You cannot join a tournament that you created.')
                                 return render(request, 'join_tournament.html', {
                                     'form': form,
-                                    'join_form': join_form,
                                     'tournament': tournament,
                                     'public_tournaments': public_tournaments,
                                     'is_own_tournament': True  # Flag to show modal
@@ -735,7 +733,6 @@ def join_tournament(request):
                             # Return with tournament_full flag
                             return render(request, 'join_tournament.html', {
                                 'form': form,
-                                'join_form': join_form,
                                 'tournament': tournament,
                                 'public_tournaments': public_tournaments,
                                 'tournament_full': True  # Flag to show modal
@@ -749,12 +746,12 @@ def join_tournament(request):
                                 user_profile=user_profile
                             )
                             
-                            # Create Player entry with user details
+                            # Create Player entry using user's profile data
                             Player.objects.create(
                                 tournament=tournament,
-                                name=join_form.cleaned_data['name'],
-                                ign=join_form.cleaned_data['ign'],
-                                contact_number=join_form.cleaned_data['contact_number'],
+                                name=request.user.username,  # Use username from profile
+                                ign=request.user.username,  # Use username as IGN (can be changed later)
+                                contact_number=request.user.email,  # Use email as contact
                                 added_by=None,  # Player added themselves
                                 user_profile=user_profile  # Link to user profile
                             )
@@ -779,12 +776,25 @@ def join_tournament(request):
                                         if count >= 2 and (count & (count - 1)) == 0:  # Power of 2
                                             print(f"[JOIN DEBUG] Generating knockout fixtures for {count} players")
                                             fixture_pairs = generate_knockout_fixtures(list(current_players))
+                                            
+                                            # Calculate stage based on number of matches
+                                            num_matches = len(fixture_pairs)
+                                            if num_matches == 1:
+                                                stage = 'FINAL'
+                                            elif num_matches == 2:
+                                                stage = 'SEMI'
+                                            elif num_matches == 4:
+                                                stage = 'QUARTER'
+                                            else:
+                                                stage = 'KNOCKOUT'
+                                            
+                                            print(f"[JOIN DEBUG] Creating {num_matches} matches with stage: {stage}")
                                             for p1, p2 in fixture_pairs:
                                                 Match.objects.create(
                                                     tournament=tournament,
                                                     player1=p1,
                                                     player2=p2,
-                                                    stage='KNOCKOUT',
+                                                    stage=stage,
                                                     round_number=1,
                                                     scheduled_time=None
                                                 )
@@ -844,12 +854,24 @@ def tournament_dashboard(request, tournament_id):
             # Check if player count is power of 2
             if current_player_count & (current_player_count - 1) == 0:
                 fixture_pairs = generate_knockout_fixtures(list(participants))
+                
+                # Determine stage based on number of matches
+                num_matches = len(fixture_pairs)
+                if num_matches == 1:
+                    stage = 'FINAL'
+                elif num_matches == 2:
+                    stage = 'SEMI'
+                elif num_matches == 4:
+                    stage = 'QUARTER'
+                else:
+                    stage = 'KNOCKOUT'
+                
                 for p1, p2 in fixture_pairs:
                     Match.objects.create(
                         tournament=tournament,
                         player1=p1,
                         player2=p2,
-                        stage='KNOCKOUT',
+                        stage=stage,
                         round_number=1,
                         scheduled_time=None
                     )
@@ -1016,12 +1038,26 @@ def regenerate_fixtures(request, tournament_id):
                 
                 print(f"[REGENERATE DEBUG] Generating knockout fixtures")
                 fixture_pairs = generate_knockout_fixtures(players[:])
+                
+                # Determine stage based on number of matches
+                num_matches = len(fixture_pairs)
+                if num_matches == 1:
+                    stage = 'FINAL'
+                elif num_matches == 2:
+                    stage = 'SEMI'
+                elif num_matches == 4:
+                    stage = 'QUARTER'
+                else:
+                    stage = 'KNOCKOUT'
+                
+                print(f"[REGENERATE DEBUG] Creating {num_matches} matches with stage: {stage}")
+                
                 for p1, p2 in fixture_pairs:
                     Match.objects.create(
                         tournament=tournament,
                         player1=p1,
                         player2=p2,
-                        stage='KNOCKOUT',
+                        stage=stage,
                         round_number=1,
                         scheduled_time=None
                     )

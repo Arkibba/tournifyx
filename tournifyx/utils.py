@@ -131,6 +131,16 @@ def generate_next_knockout_round(tournament):
     random.shuffle(winners)
     next_round = max_round + 1
 
+    # Determine stage for next round based on number of matches
+    num_next_matches = len(winners) // 2
+    if num_next_matches == 1:
+        stage = 'FINAL'
+    elif num_next_matches == 2:
+        stage = 'SEMI'
+    elif num_next_matches == 4:
+        stage = 'QUARTER'
+    else:
+        stage = 'KNOCKOUT'
     
     # Pair winners for next round
     for i in range(0, len(parent_winners), 2):
@@ -142,10 +152,12 @@ def generate_next_knockout_round(tournament):
                 tournament=tournament,
                 player1=p1,
                 player2=p2,
+                stage=stage,
                 round_number=next_round,
                 parent_match1=p1_parent,
                 parent_match2=p2_parent
             )
+            print(f"[Knockout] Created {stage} match: {p1.name} vs {p2.name}")
             
         else:
             # Bye case (shouldn't occur with 2^n) - attach parent
@@ -154,10 +166,11 @@ def generate_next_knockout_round(tournament):
                 player1=p1,
                 player2=None,
                 winner=p1,
+                stage=stage,
                 round_number=next_round,
                 parent_match1=p1_parent
             )
-            print(f"[Knockout] {p1.name} gets a bye to next round.")
+            print(f"[Knockout] {p1.name} gets a bye to {stage}.")
 
 
 def propagate_result_change(changed_match):

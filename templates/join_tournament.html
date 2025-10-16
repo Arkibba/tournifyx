@@ -119,62 +119,45 @@
     {% endif %}
 
     {% if tournament %}
-      <!-- Tournament Found - Show Join Form -->
+      <!-- Tournament Found - Show Confirmation -->
       <div class="text-center mb-6">
-        <div class="bg-gray-800 rounded-lg p-4 mb-6">
-          <h2 class="text-xl font-bold text-green-400 mb-2">Tournament Found!</h2>
-          <h3 class="text-2xl font-extrabold text-white mb-2">{{ tournament.name }}</h3>
-          <p class="text-gray-300 mb-3">{{ tournament.description }}</p>
-          <div class="flex flex-wrap justify-center gap-2 mb-3">
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+          <h2 class="text-xl font-bold text-green-400 mb-3">Tournament Found!</h2>
+          <h3 class="text-2xl font-extrabold text-white mb-3">{{ tournament.name }}</h3>
+          <p class="text-gray-300 mb-4">{{ tournament.description }}</p>
+          <div class="flex flex-wrap justify-center gap-2 mb-4">
             <span class="bg-orange-600 text-white px-3 py-1 rounded-full text-sm">{{ tournament.get_category_display }}</span>
             <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">{{ tournament.get_match_type_display }}</span>
             <span class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm">{{ tournament.num_participants }} Players</span>
           </div>
+          
+          <!-- User Profile Info Preview -->
+          <div class="bg-black/40 rounded-lg p-4 mt-4 border border-gray-700">
+            <p class="text-gray-400 text-sm mb-3">You will join as:</p>
+            <div class="flex items-center justify-center gap-3">
+              {% if request.user.userprofile and request.user.userprofile.avatar %}
+                <img src="{{ request.user.userprofile.avatar.url }}" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-green-500">
+              {% else %}
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                  <span class="text-white font-bold text-xl">{{ request.user.username.0|upper }}</span>
+                </div>
+              {% endif %}
+              <div class="text-left">
+                <p class="text-white font-bold">{{ request.user.username }}</p>
+                <p class="text-gray-400 text-sm">{{ request.user.email }}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
-      <form method="post" class="space-y-6">
+      <form method="post" class="space-y-4">
         {% csrf_token %}
         <input type="hidden" name="tournament_code" value="{{ tournament.code }}">
         
-        <div>
-          <label for="id_name" class="block text-sm font-semibold text-gray-300 mb-2">Full Name</label>
-          {% if join_form %}
-            {{ join_form.name|add_class:"w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" }}
-            {% if join_form.name.errors %}
-              <div class="text-red-400 text-sm mt-1">{{ join_form.name.errors.0 }}</div>
-            {% endif %}
-          {% else %}
-            <input type="text" name="name" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-          {% endif %}
-        </div>
-        
-        <div>
-          <label for="id_ign" class="block text-sm font-semibold text-gray-300 mb-2">In-Game Name</label>
-          {% if join_form %}
-            {{ join_form.ign|add_class:"w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" }}
-            {% if join_form.ign.errors %}
-              <div class="text-red-400 text-sm mt-1">{{ join_form.ign.errors.0 }}</div>
-            {% endif %}
-          {% else %}
-            <input type="text" name="ign" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-          {% endif %}
-        </div>
-        
-        <div>
-          <label for="id_contact_number" class="block text-sm font-semibold text-gray-300 mb-2">Contact Number</label>
-          {% if join_form %}
-            {{ join_form.contact_number|add_class:"w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" }}
-            {% if join_form.contact_number.errors %}
-              <div class="text-red-400 text-sm mt-1">{{ join_form.contact_number.errors.0 }}</div>
-            {% endif %}
-          {% else %}
-            <input type="text" name="contact_number" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-          {% endif %}
-        </div>
-        
-        <button type="submit" name="join_tournament" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
-          Join Tournament
+        <button type="submit" name="join_tournament" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+          <i class="fas fa-check-circle"></i>
+          <span>Confirm & Join Tournament</span>
         </button>
       </form>
       

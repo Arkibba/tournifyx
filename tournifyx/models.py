@@ -79,7 +79,7 @@ class Player(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     ign = models.CharField(max_length=100, null=True, blank=True)  # In-Game Name
-    contact_number = models.CharField(max_length=20, null=True, blank=True)  # Contact Number
+    contact_number = models.CharField(max_length=255, null=True, blank=True)  # Contact Number or Email
     team_name = models.CharField(max_length=100, null=True, blank=True)  # Make this optional
     added_by = models.ForeignKey(HostProfile, on_delete=models.SET_NULL, null=True)
     user_profile = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)  # Link to user who joined
