@@ -108,6 +108,34 @@
         background-attachment: fixed;
         background-size: cover;
       }
+      
+      /* Page transition fade-in effect */
+      body {
+        animation: fadeIn 0.4s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      
+      /* Page transition fade-out effect for links */
+      body.fade-out {
+        animation: fadeOut 0.3s ease-out forwards;
+      }
+      
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
     </style>
 </head>
 <body class="site-bg text-white m-0 p-0 overflow-x-hidden">
@@ -255,6 +283,38 @@
     window.startFloatingXs = () => {
       for (let i = 0; i < 10; i++) setTimeout(spawnFloating, i * 200);
     };
+  });
+</script>
+
+<!-- Page Transition Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get all internal links
+    const links = document.querySelectorAll('a[href^="/"], a[href^="' + window.location.origin + '"]');
+    
+    links.forEach(link => {
+      link.addEventListener('click', function(e) {
+        // Check if it's not an external link, hash link, or has target="_blank"
+        const href = this.getAttribute('href');
+        const target = this.getAttribute('target');
+        
+        // Skip if it's a hash link, external, or opens in new tab
+        if (href.startsWith('#') || target === '_blank' || this.hostname !== window.location.hostname) {
+          return;
+        }
+        
+        // Prevent default navigation
+        e.preventDefault();
+        
+        // Add fade-out class
+        document.body.classList.add('fade-out');
+        
+        // Navigate after fade-out animation completes
+        setTimeout(() => {
+          window.location.href = href;
+        }, 300); // Match the fadeOut animation duration
+      });
+    });
   });
 </script>
 

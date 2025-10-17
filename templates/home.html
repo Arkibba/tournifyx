@@ -14,6 +14,21 @@
     max-width: 100vw;
   }
   
+  /* Remove gaps between sections */
+  section {
+    margin: 0;
+    padding: 0;
+    display: block;
+  }
+  
+  /* Ensure background sections cover full viewport */
+  #bg, #esports-games, #contact {
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
   /* Play overlay/button shown when autoplay is blocked or user needs to start playback */
   #videoPlayOverlay { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.45)); }
   .play-button {
@@ -154,8 +169,9 @@
 <!-- Floating Nav (top-right) -->
 <div class="fixed top-0 left-0 w-full z-20 pointer-events-none">
   <div class="flex justify-end items-center pt-10 pr-16 w-full">
-    <a href="#" class="pointer-events-auto bg-white text-gray-900 font-bold rounded-full px-8 py-3 text-base shadow-lg flex items-center gap-2 border-none hover:bg-gray-100 transition">
-      Watch Live Stream
+    <a href="#esports-games" class="pointer-events-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-full px-8 py-3 text-base shadow-lg flex items-center gap-2 border-2 border-white/30 hover:from-orange-600 hover:to-orange-700 hover:scale-105 transition-all backdrop-blur-sm">
+      <i class="fas fa-play-circle"></i>
+      Watch Esports Games
       <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M13 18l6-6-6-6"/></svg>
     </a>
   </div>
@@ -179,23 +195,110 @@
       <a href="{% url 'host_tournament' %}" class="bg-white/20 text-white border-2 border-white/30 rounded-full text-lg font-bold px-8 py-3 shadow-md hover:bg-orange-600 hover:text-white hover:border-orange-600 transition backdrop-blur-sm float-on-hover">Create a tournament</a>
     </div>
   </div>
-
-
-
 </div>
 
 <!-- Additional full-screen background section revealed when scrolling down -->
-<section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center overflow-hidden" style="background-image: url('{% static 'images/bg2.png' %}'); background-size: cover; background-position: center; min-width: 100vw; min-height: 100vh;">
+<section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/bg2.png' %}'); background-size: cover; background-position: center;">
   <div class="absolute inset-0 bg-transparent"></div>
-  <div class="relative z-10 w-full max-w-6xl mx-auto p-8">
+  <div class="relative z-10 w-full max-w-7xl mx-auto p-8">
   <h2 class="text-4xl md:text-5xl font-extrabold mb-8 text-center">Players' Picks — Leaders' Favorites</h2>
   <p class="text-lg text-gray-300 max-w-4xl mx-auto mb-8 text-center">What the top-ranked players are playing and recommending — curated highlights and quick insights.</p>
-    <div class="grid grid-cols-1 justify-center gap-8">
-      <!-- Player Leaderboard -->
-      <div class="bg-black/60 rounded-2xl shadow-lg p-6 flex flex-col mx-auto w-full max-w-3xl">
-  <h3 class="text-2xl font-bold text-orange-400 mb-1 text-center">Top Players</h3>
-        <div class="overflow-x-auto">
-          <table id="playersTable" class="players-leaderboard min-w-full text-left text-white bg-transparent rounded-md overflow-hidden" aria-describedby="top-players">
+    
+    <!-- Grid Layout: Featured Players (Left) + Leaderboard (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Featured Top Players Section (Left Side) -->
+      <div class="lg:col-span-1 space-y-6">
+        <div class="bg-black/70 backdrop-blur-md rounded-2xl shadow-lg border-2 border-orange-500 overflow-hidden p-6">
+          <!-- Title -->
+          <h3 class="text-2xl font-bold text-white mb-1 text-center">
+            <i class="fas fa-crown text-orange-400 mr-2"></i>Top Champions
+          </h3>
+          <p class="text-sm text-gray-300 text-center mb-6">Elite players dominating each segment</p>
+          
+          <!-- Featured Players Grid -->
+          <div class="space-y-4">
+            {% for player in featured_players %}
+            {% if player.has_player %}
+            <!-- Player Card with Data -->
+            <div class="bg-black/60 backdrop-blur-md rounded-xl p-4 border-2 border-orange-500/40 hover:border-orange-500/70 transition-all transform hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20">
+              <div class="flex items-center gap-4">
+                <!-- Player Avatar -->
+                <div class="relative flex-shrink-0">
+                  <div class="w-16 h-16 rounded-full overflow-hidden border-3 border-gradient-to-br from-orange-400 to-pink-400 shadow-lg bg-gray-800">
+                    {% if player.avatar_url %}
+                      <img src="{{ player.avatar_url }}" alt="{{ player.username }}" class="w-full h-full object-cover">
+                    {% else %}
+                      <div class="w-full h-full flex items-center justify-center text-gray-400">
+                        <i class="fas fa-user text-2xl"></i>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg">
+                    1
+                  </div>
+                </div>
+                
+                <!-- Player Info -->
+                <div class="flex-grow min-w-0">
+                  <h4 class="text-white font-bold text-sm truncate">{{ player.username }}</h4>
+                  <p class="text-xs text-orange-400 font-semibold uppercase tracking-wide">
+                    <i class="fas fa-gamepad mr-1"></i>{{ player.category_display }}
+                  </p>
+                  <div class="flex items-center gap-3 mt-2 text-xs text-gray-300">
+                    <span class="flex items-center gap-1">
+                      <i class="fas fa-trophy text-yellow-400"></i>
+                      {{ player.wins }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <i class="fas fa-star text-orange-400"></i>
+                      {{ player.points }}
+                    </span>
+                    <span class="flex items-center gap-1 text-green-400 font-semibold">
+                      {{ player.win_rate }}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <!-- No Player Card -->
+            <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border-2 border-gray-700/40">
+              <div class="flex items-center gap-4">
+                <!-- Empty Avatar -->
+                <div class="relative flex-shrink-0">
+                  <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-700 shadow-lg bg-gray-800/50 flex items-center justify-center">
+                    <i class="fas fa-user-slash text-gray-600 text-2xl"></i>
+                  </div>
+                </div>
+                
+                <!-- No Player Info -->
+                <div class="flex-grow min-w-0">
+                  <h4 class="text-gray-500 font-bold text-sm">No Player</h4>
+                  <p class="text-xs text-gray-600 font-semibold uppercase tracking-wide">
+                    <i class="fas fa-gamepad mr-1"></i>{{ player.category_display }}
+                  </p>
+                  <p class="text-xs text-gray-600 mt-2">No tournaments played yet</p>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Player Leaderboard (Right Side) -->
+      <div class="lg:col-span-2">
+        <div class="bg-black/70 backdrop-blur-md rounded-2xl shadow-lg border-2 border-orange-500 overflow-hidden p-6">
+          <!-- Title -->
+          <h3 class="text-2xl font-bold text-white text-center mb-1">
+            <i class="fas fa-trophy text-orange-400 mr-2"></i>Top Players
+          </h3>
+          <p class="text-sm text-gray-300 text-center mb-6">Overall leaderboard rankings</p>
+          
+          <!-- Table Container -->
+          <div class="overflow-x-auto">
+              <table id="playersTable" class="players-leaderboard min-w-full text-left text-white bg-transparent rounded-md overflow-hidden" aria-describedby="top-players">
             <thead>
               <tr class="bg-gray-800/60">
                 <th class="py-3 px-4 text-sm text-gray-300 uppercase">Rank</th>
@@ -222,8 +325,21 @@
               <tr><td colspan="7" class="py-6 text-center text-gray-400">No player data available.</td></tr>
               {% endfor %}
             </tbody>
-          </table>
+              </table>
+            </div>
         </div>
+      </div>
+    </div>
+    
+    <!-- Call to Action - Centered Below Both Sections -->
+    <div class="mt-12 flex justify-center">
+      <div class="bg-black/70 backdrop-blur-md rounded-2xl shadow-lg border-2 border-orange-500 p-8 text-center max-w-2xl w-full">
+        <i class="fas fa-bolt text-orange-400 text-5xl mb-4 animate-pulse block"></i>
+        <h4 class="text-2xl md:text-3xl font-bold text-white mb-3">Want to be Featured?</h4>
+        <p class="text-base text-gray-300 mb-6">Show us your skills and dominate the leaderboard!</p>
+        <a href="{% url 'public_tournaments' %}" class="bg-white/20 text-white border-2 border-white/30 rounded-full text-lg font-bold px-8 py-3 shadow-md hover:bg-orange-600 hover:text-white hover:border-orange-600 transition backdrop-blur-sm float-on-hover inline-block">
+          <i class="fas fa-fire mr-2"></i>Join Tournaments Now
+        </a>
       </div>
     </div>
   </div>
@@ -237,9 +353,9 @@
 
 
 <!-- New section: Most Promising Esports Games -->
-<section id="esports-games" class="relative w-full min-h-screen flex items-center justify-center -mt-6 md:-mt-8 py-20 overflow-hidden">
+<section id="esports-games" class="relative w-full min-h-screen flex items-center justify-center py-20">
   <!-- background image for esports games section -->
-  <div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static 'images/bg3.png' %}'); background-size: cover; background-position: center; min-width: 100vw; min-height: 100vh;"></div>
+  <div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static 'images/bg3.png' %}'); background-size: cover; background-position: center;"></div>
   <div class="relative z-10 max-w-6xl mx-auto px-8">
     <div class="text-center mb-16">
       <h2 class="text-4xl md:text-6xl font-extrabold text-white mb-6">Most Promising <span class="text-orange-500">Esports Games</span></h2>
@@ -248,12 +364,12 @@
     
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <!-- Valorant -->
-      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+      <a href="https://www.twitch.tv/valorant" target="_blank" rel="noopener noreferrer" class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 block">
         <div class="h-48 bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
-          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/valorant.mov' %}" autoplay loop muted playsinline></video>
+          <video class="h-full w-auto rounded-md shadow-lg pointer-events-none" src="{% static 'videos/valorant.mov' %}" autoplay loop muted playsinline></video>
         </div>
         <div class="p-6">
-          <h3 class="text-2xl font-bold text-white mb-3">Valorant</h3>
+          <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">Valorant</h3>
           <p class="text-gray-300 mb-4">Tactical FPS that combines precise shooting with unique agent abilities</p>
           <div class="flex justify-between items-center">
             <span class="text-orange-500 font-semibold">Growing Fast</span>
@@ -262,15 +378,15 @@
             </div>
           </div>
         </div>
-      </div>
+      </a>
 
       <!-- League of Legends -->
-      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+      <a href="https://www.twitch.tv/directory/category/league-of-legends" target="_blank" rel="noopener noreferrer" class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 block">
         <div class="h-48 bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/lol.mov' %}" autoplay loop muted playsinline></video>
+          <video class="h-full w-auto rounded-md shadow-lg pointer-events-none" src="{% static 'videos/lol.mov' %}" autoplay loop muted playsinline></video>
         </div>
         <div class="p-6">
-          <h3 class="text-2xl font-bold text-white mb-3">League of Legends</h3>
+          <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">League of Legends</h3>
           <p class="text-gray-300 mb-4">The king of MOBAs with the largest esports ecosystem worldwide</p>
           <div class="flex justify-between items-center">
             <span class="text-green-500 font-semibold">Established</span>
@@ -279,15 +395,15 @@
             </div>
           </div>
         </div>
-      </div>
+      </a>
 
       <!-- CS2 -->
-      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+      <a href="https://www.twitch.tv/directory/category/counter-strike" target="_blank" rel="noopener noreferrer" class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 block">
         <div class="h-48 bg-gradient-to-br from-yellow-600 to-orange-600 flex items-center justify-center">
-          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/cs2.mov' %}" autoplay loop muted playsinline></video>
+          <video class="h-full w-auto rounded-md shadow-lg pointer-events-none" src="{% static 'videos/cs2.mov' %}" autoplay loop muted playsinline></video>
         </div>
         <div class="p-6">
-          <h3 class="text-2xl font-bold text-white mb-3">Counter-Strike 2</h3>
+          <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">Counter-Strike 2</h3>
           <p class="text-gray-300 mb-4">The evolution of the legendary tactical shooter with updated graphics</p>
           <div class="flex justify-between items-center">
             <span class="text-yellow-500 font-semibold">Rising</span>
@@ -296,19 +412,19 @@
             </div>
           </div>
         </div>
-      </div>
+      </a>
 
 
 
 
       
       <!-- Apex Legends -->
-      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+      <a href="https://www.twitch.tv/playapex" target="_blank" rel="noopener noreferrer" class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 block">
         <div class="h-48 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/apex.mp4' %}" autoplay loop muted playsinline></video>
+          <video class="h-full w-auto rounded-md shadow-lg pointer-events-none" src="{% static 'videos/apex.mp4' %}" autoplay loop muted playsinline></video>
         </div>
         <div class="p-6">
-          <h3 class="text-2xl font-bold text-white mb-3">Apex Legends</h3>
+          <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">Apex Legends</h3>
           <p class="text-gray-300 mb-4">Battle royale with unique legends and fast-paced tactical gameplay</p>
           <div class="flex justify-between items-center">
             <span class="text-purple-500 font-semibold">Competitive</span>
@@ -317,15 +433,15 @@
             </div>
           </div>
         </div>
-      </div>
+      </a>
 
       <!-- Rocket League -->
-      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+      <a href="https://www.twitch.tv/rocketleague" target="_blank" rel="noopener noreferrer" class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 block">
         <div class="h-48 bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center">
-          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/rl.mov' %}" autoplay loop muted playsinline></video>
+          <video class="h-full w-auto rounded-md shadow-lg pointer-events-none" src="{% static 'videos/rl.mov' %}" autoplay loop muted playsinline></video>
         </div>
         <div class="p-6">
-          <h3 class="text-2xl font-bold text-white mb-3">Rocket League</h3>
+          <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">Rocket League</h3>
           <p class="text-gray-300 mb-4">Soccer meets racing in this unique and highly competitive sports game</p>
           <div class="flex justify-between items-center">
             <span class="text-cyan-500 font-semibold">Unique</span>
@@ -334,19 +450,15 @@
             </div>
           </div>
         </div>
-      </div>
+      </a>
 
-
-
-
-      
       <!-- Fortnite -->
-      <div class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group">
+      <a href="https://www.twitch.tv/fortnite" target="_blank" rel="noopener noreferrer" class="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-black/60 transition duration-300 group cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 block">
         <div class="h-48 bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-          <video class="h-full w-auto rounded-md shadow-lg" src="{% static 'videos/fortnite.mov' %}" autoplay loop muted playsinline></video>
+          <video class="h-full w-auto rounded-md shadow-lg pointer-events-none" src="{% static 'videos/fortnite.mov' %}" autoplay loop muted playsinline></video>
         </div>
         <div class="p-6">
-          <h3 class="text-2xl font-bold text-white mb-3">Fortnite</h3>
+          <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">Fortnite</h3>
           <p class="text-gray-300 mb-4">Building-based battle royale with creative gameplay mechanics</p>
           <div class="flex justify-between items-center">
             <span class="text-indigo-500 font-semibold">Popular</span>
@@ -355,7 +467,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </a>
     </div>
   </div>
 </section>

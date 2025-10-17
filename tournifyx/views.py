@@ -340,8 +340,8 @@ def generate_league_fixtures(players):
 def home(request):
     # Top Players: aggregate across all tournaments
     top_players_qs = (
-        PointTable.objects.select_related('player')
-        .values('player__name', 'player__id')
+        PointTable.objects.select_related('player', 'player__user_profile')
+        .values('player__name', 'player__id', 'player__user_profile__avatar')
         .annotate(
             total_points=models.Sum('points'),
             total_wins=models.Sum('wins'),
@@ -357,15 +357,74 @@ def home(request):
         win_rate = 0
         if p['total_matches']:
             win_rate = round(100 * p['total_wins'] / p['total_matches'])
+        
+        # Get avatar URL if available
+        avatar_url = None
+        if p['player__user_profile__avatar']:
+            avatar_url = p['player__user_profile__avatar']
+        
         top_players.append({
             'username': p['player__name'],
             'points': p['total_points'],
             'tournaments': p['total_tournaments'],
             'wins': p['total_wins'],
             'win_rate': win_rate,
-            # Placeholder avatar (replace with real if available)
-            'avatar_url': '/static/images/github.png',
+            'avatar_url': avatar_url,
         })
+
+    # Featured Players by Category (Top 1 from each segment)
+    featured_categories = ['valorant', 'football', 'cricket', 'basketball']
+    featured_players = []
+    
+    for category in featured_categories:
+        top_in_category = (
+            PointTable.objects.select_related('player', 'player__user_profile', 'player__user_profile__user', 'tournament')
+            .filter(tournament__category=category)
+            .values('player__name', 'player__id', 'player__user_profile__avatar')
+            .annotate(
+                total_points=models.Sum('points'),
+                total_wins=models.Sum('wins'),
+                total_tournaments=models.Count('tournament', distinct=True),
+                total_matches=models.Sum('matches_played'),
+            )
+            .order_by('-total_points', '-total_wins')
+            .first()
+        )
+        
+        if top_in_category:
+            win_rate = 0
+            if top_in_category['total_matches']:
+                win_rate = round(100 * top_in_category['total_wins'] / top_in_category['total_matches'])
+            
+            # Get avatar URL
+            avatar_url = None
+            if top_in_category['player__user_profile__avatar']:
+                avatar_url = top_in_category['player__user_profile__avatar']
+            
+            featured_players.append({
+                'username': top_in_category['player__name'],
+                'category': category,
+                'category_display': category.title(),
+                'points': top_in_category['total_points'],
+                'wins': top_in_category['total_wins'],
+                'tournaments': top_in_category['total_tournaments'],
+                'win_rate': win_rate,
+                'avatar_url': avatar_url,
+                'has_player': True,
+            })
+        else:
+            # No player found for this category
+            featured_players.append({
+                'username': None,
+                'category': category,
+                'category_display': category.title(),
+                'points': 0,
+                'wins': 0,
+                'tournaments': 0,
+                'win_rate': 0,
+                'avatar_url': None,
+                'has_player': False,
+            })
 
     # Top Teams: group by team_name, ignore blank/null
     top_teams_qs = (
@@ -398,6 +457,7 @@ def home(request):
     return render(request, 'home.html', {
         'top_players': top_players,
         'top_teams': top_teams,
+        'featured_players': featured_players,
     })
 
 
