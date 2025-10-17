@@ -154,6 +154,8 @@
       <form method="post" class="space-y-4">
         {% csrf_token %}
         <input type="hidden" name="tournament_code" value="{{ tournament.code }}">
+        <input type="hidden" name="name" value="{{ request.user.username }}">
+        <input type="hidden" name="ign" value="{{ request.user.username }}">
         
         <button type="submit" name="join_tournament" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
           <i class="fas fa-check-circle"></i>

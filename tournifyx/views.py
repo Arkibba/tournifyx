@@ -158,71 +158,132 @@ def join_public_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id, is_public=True)
     current_players = Player.objects.filter(tournament=tournament).count()
     capacity = tournament.num_participants
+
     if request.method == 'POST':
         form = PublicTournamentJoinForm(request.POST)
-        if form.is_valid():
-            # Check if user is authenticated and has profile
+
+        # 🟢 NEW: Handle direct "Confirm & Join" without form code field
+        if 'join_tournament' in request.POST or not form.is_valid():
             if request.user.is_authenticated:
                 try:
                     user_profile = UserProfile.objects.get(user=request.user)
-                    
-                    # Check if user is the host (hosts can't join their own tournaments)
+                except UserProfile.DoesNotExist:
+                    user_profile = UserProfile.objects.create(user=request.user)
+
+            # Prevent host joining their own tournament
+            try:
+                host_profile = HostProfile.objects.get(user=request.user)
+                if tournament.created_by == host_profile:
+                    messages.error(request, 'You cannot join a tournament that you created.')
+                    return render(request, 'join_tournament.html', {
+                        'form': form, 
+                        'tournament': tournament,
+                        'is_own_tournament': True
+                    })
+            except HostProfile.DoesNotExist:
+                pass
+
+            # Check already joined
+            if TournamentParticipant.objects.filter(
+                tournament=tournament,
+                user_profile=user_profile
+            ).exists():
+                messages.error(request, 'You have already joined this tournament.')
+                return render(request, 'join_tournament.html', {'form': form, 'tournament': tournament})
+
+            # Check capacity
+            if current_players >= capacity:
+                messages.error(request, 'This tournament is full. No more players can join.')
+                return render(request, 'join_tournament.html', {
+                    'form': form,
+                    'tournament': tournament,
+                    'tournament_full': True
+                })
+
+            # Paid tournament → check payment
+            if tournament.is_paid and tournament.price > 0:
+                payment_completed = Payment.objects.filter(
+                    tournament=tournament,
+                    user_profile=user_profile,
+                    status='completed'
+                ).exists()
+                if not payment_completed:
+                    messages.warning(request, 'You need to complete payment before joining this tournament.')
+                    return redirect('payment_page', tournament_id=tournament.id)
+
+            # ✅ Create player (auto name from username)
+            new_player = Player.objects.create(
+                tournament=tournament,
+                name=request.user.username,
+                team_name=request.user.username,
+                user_profile=user_profile
+            )
+            TournamentParticipant.objects.get_or_create(
+                tournament=tournament,
+                user_profile=user_profile
+            )
+
+            messages.success(request, f'Successfully joined {tournament.name}!')
+            return redirect('tournament_dashboard', tournament_id=tournament.id)
+
+        # 🟡 Normal join (via code form)
+        elif form.is_valid():
+            if request.user.is_authenticated:
+                try:
+                    user_profile = UserProfile.objects.get(user=request.user)
+                    # Prevent host joining their own tournament
                     try:
                         host_profile = HostProfile.objects.get(user=request.user)
                         if tournament.created_by == host_profile:
                             messages.error(request, 'You cannot join a tournament that you created.')
                             return render(request, 'join_tournament.html', {
-                                'form': form, 
+                                'form': form,
                                 'tournament': tournament,
-                                'is_own_tournament': True  # Flag to show modal
+                                'is_own_tournament': True
                             })
                     except HostProfile.DoesNotExist:
-                        pass  # User is not a host, they can join
-                    
-                    # Check if user already joined
-                    already_joined = TournamentParticipant.objects.filter(
+                        pass
+
+                    # Already joined check
+                    if TournamentParticipant.objects.filter(
                         tournament=tournament,
                         user_profile=user_profile
-                    ).exists()
-                    if already_joined:
+                    ).exists():
                         messages.error(request, 'You have already joined this tournament.')
                         return render(request, 'join_tournament.html', {'form': form, 'tournament': tournament})
-                        
+
                 except UserProfile.DoesNotExist:
-                    # Create profile if it doesn't exist
                     user_profile = UserProfile.objects.create(user=request.user)
-            
+
+            # Full check
             if current_players >= capacity:
                 messages.error(request, 'This tournament is full. No more players can join.')
-                # Return with tournament_full flag
                 return render(request, 'join_tournament.html', {
                     'form': form,
                     'tournament': tournament,
-                    'tournament_full': True  # Flag to show modal
+                    'tournament_full': True
                 })
+
+            # Paid tournament check
             elif tournament.is_paid and tournament.price > 0:
-                # Check if user has completed payment
                 user_profile = UserProfile.objects.get(user=request.user)
                 payment_completed = Payment.objects.filter(
                     tournament=tournament,
                     user_profile=user_profile,
                     status='completed'
                 ).exists()
-                
                 if not payment_completed:
                     messages.warning(request, 'You need to complete payment before joining this tournament.')
                     return redirect('payment_page', tournament_id=tournament.id)
-                
-                # Payment completed, proceed with joining
-                # Create the player
+
+                # Payment done — create player
                 new_player = Player.objects.create(
                     tournament=tournament,
                     name=form.cleaned_data['name'],
-                    team_name=form.cleaned_data['ign'],
-                    # added_by can be null for public join
+                    team_name=form.cleaned_data['ign']
                 )
-                
-                # Link payment to player
+
+                # Link payment
                 payment = Payment.objects.filter(
                     tournament=tournament,
                     user_profile=user_profile,
@@ -231,97 +292,80 @@ def join_public_tournament(request, tournament_id):
                 if payment:
                     payment.player = new_player
                     payment.save()
-                
-                # Add TournamentParticipant entry for the user
+
                 TournamentParticipant.objects.get_or_create(
                     tournament=tournament,
                     user_profile=user_profile
                 )
-                # Link player to user profile
                 new_player.user_profile = user_profile
                 new_player.save()
-                
                 messages.success(request, f'Successfully joined {tournament.name}!')
+
             else:
-                # Free tournament - proceed normally
-                # Create the player
+                # Free tournament
                 new_player = Player.objects.create(
                     tournament=tournament,
                     name=form.cleaned_data['name'],
-                    team_name=form.cleaned_data['ign'],
-                    # added_by can be null for public join
+                    team_name=form.cleaned_data['ign']
                 )
-                
-                # Add TournamentParticipant entry for the user
+
                 if request.user.is_authenticated:
                     user_profile = UserProfile.objects.get(user=request.user)
                     TournamentParticipant.objects.get_or_create(
                         tournament=tournament,
                         user_profile=user_profile
                     )
-                    # Link player to user profile
                     new_player.user_profile = user_profile
                     new_player.save()
-                
-                # Check if tournament is now FULL and needs fixtures generated
-                current_players = Player.objects.filter(tournament=tournament)
-                count = current_players.count()
-                
+
+                # Fixture generation logic unchanged
+                current_players_qs = Player.objects.filter(tournament=tournament)
+                count = current_players_qs.count()
+
                 print(f"[PUBLIC JOIN DEBUG] Tournament: {tournament.name}")
-                print(f"[PUBLIC JOIN DEBUG] Current player count: {count}")
-                print(f"[PUBLIC JOIN DEBUG] Required participants: {tournament.num_participants}")
-                print(f"[PUBLIC JOIN DEBUG] Match type: {tournament.match_type}")
-                
-                # Only generate fixtures if tournament is now full and no fixtures exist yet
+                print(f"[PUBLIC JOIN DEBUG] Player count: {count}/{tournament.num_participants}")
+
                 if count == tournament.num_participants:
                     existing_matches = Match.objects.filter(tournament=tournament)
-                    print(f"[PUBLIC JOIN DEBUG] Tournament is full! Existing matches: {existing_matches.count()}")
-                    
                     if not existing_matches.exists():
-                        print(f"[PUBLIC JOIN DEBUG] No existing matches, generating fixtures...")
                         if tournament.match_type == 'knockout':
-                            if count >= 2 and (count & (count - 1)) == 0:  # Power of 2
-                                print(f"[PUBLIC JOIN DEBUG] Generating knockout fixtures for {count} players")
-                                fixture_pairs = generate_knockout_fixtures(list(current_players))
+                            if count >= 2 and (count & (count - 1)) == 0:
+                                fixture_pairs = generate_knockout_fixtures(list(current_players_qs))
                                 for p1, p2 in fixture_pairs:
                                     Match.objects.create(
                                         tournament=tournament,
                                         player1=p1,
                                         player2=p2,
                                         stage='KNOCKOUT',
-                                        round_number=1,
-                                        scheduled_time=None
+                                        round_number=1
                                     )
-                                print(f"[PUBLIC JOIN DEBUG] Created {len(fixture_pairs)} knockout matches")
-                                messages.success(request, f'Successfully joined "{tournament.name}"! Tournament is now full and fixtures have been generated.')
+                                messages.success(request, f'Successfully joined "{tournament.name}"! Fixtures generated.')
                             else:
-                                print(f"[PUBLIC JOIN DEBUG] Player count {count} is not a power of 2")
                                 messages.success(request, 'You have successfully joined the tournament!')
                         elif tournament.match_type == 'league' and count >= 2:
-                            print(f"[PUBLIC JOIN DEBUG] Generating league fixtures for {count} players")
-                            fixture_pairs = generate_league_fixtures([p.name for p in current_players])
-                            name_to_player = {p.name: p for p in current_players}
+                            fixture_pairs = generate_league_fixtures([p.name for p in current_players_qs])
+                            name_to_player = {p.name: p for p in current_players_qs}
                             for p1_name, p2_name in fixture_pairs:
                                 Match.objects.create(
                                     tournament=tournament,
                                     player1=name_to_player[p1_name],
                                     player2=name_to_player[p2_name],
                                     stage='GROUP',
-                                    round_number=1,
-                                    scheduled_time=None
+                                    round_number=1
                                 )
-                            print(f"[PUBLIC JOIN DEBUG] Created {len(fixture_pairs)} league matches")
-                            messages.success(request, f'Successfully joined "{tournament.name}"! Tournament is now full and fixtures have been generated.')
+                            messages.success(request, f'Successfully joined "{tournament.name}"! Fixtures generated.')
+                        else:
+                            messages.success(request, 'You have successfully joined the tournament!')
                     else:
-                        print(f"[PUBLIC JOIN DEBUG] Fixtures already exist, skipping generation")
                         messages.success(request, 'You have successfully joined the tournament!')
                 else:
-                    print(f"[PUBLIC JOIN DEBUG] Tournament not full yet ({count}/{tournament.num_participants})")
                     messages.success(request, 'You have successfully joined the tournament!')
-                
+
                 return redirect('tournament_dashboard', tournament_id=tournament.id)
+
     else:
         form = PublicTournamentJoinForm()
+
     return render(request, 'join_tournament.html', {'form': form, 'tournament': tournament})
 
 def generate_knockout_fixtures(players):
