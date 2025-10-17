@@ -599,6 +599,104 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 });
+
+// Validate knockout tournament participants
+document.addEventListener('DOMContentLoaded', function() {
+  const matchTypeSelect = document.querySelector('select[name="match_type"]');
+  const numParticipantsInput = document.querySelector('input[name="num_participants"]');
+  const form = document.getElementById('tournamentForm');
+  
+  // Function to check if a number is a power of 2
+  function isPowerOfTwo(n) {
+    return n > 0 && (n & (n - 1)) === 0;
+  }
+  
+  // Function to show popup alert
+  function showKnockoutAlert() {
+    const participants = parseInt(numParticipantsInput.value);
+    
+    if (matchTypeSelect.value === 'knockout' && participants && !isPowerOfTwo(participants)) {
+      // Create modal overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm';
+      overlay.innerHTML = `
+        <div class="bg-gradient-to-br from-gray-900 to-black border-2 border-red-500 rounded-2xl p-8 max-w-md mx-4 shadow-2xl animate-fade-in">
+          <div class="text-center">
+            <div class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-exclamation-triangle text-red-500 text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">Invalid Participant Count</h3>
+            <p class="text-gray-300 mb-6">
+              Knockout tournaments require a power of 2 number of participants.
+            </p>
+            <div class="bg-orange-500/20 border border-orange-500 rounded-lg p-4 mb-6">
+              <p class="text-orange-300 font-semibold mb-2">Valid participant numbers:</p>
+              <p class="text-white text-lg font-mono">2, 4, 8, 16, 32, 64, 128...</p>
+            </div>
+            <p class="text-sm text-gray-400 mb-6">
+              You entered: <span class="text-red-400 font-bold">${participants}</span> participants
+            </p>
+            <button onclick="this.closest('.fixed').remove()" class="px-8 py-3 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 w-full">
+              Got it, I'll fix it
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      return false;
+    }
+    return true;
+  }
+  
+  // Validate on form submission
+  form.addEventListener('submit', function(e) {
+    if (!showKnockoutAlert()) {
+      e.preventDefault();
+      return false;
+    }
+  });
+  
+  // Also validate when navigating to review step
+  const originalNextSection = window.nextSection;
+  window.nextSection = function(sectionNumber) {
+    if (sectionNumber === 3) { // Going to review step
+      if (!showKnockoutAlert()) {
+        return false;
+      }
+    }
+    originalNextSection(sectionNumber);
+  };
+  
+  // Real-time validation feedback
+  numParticipantsInput.addEventListener('blur', function() {
+    if (matchTypeSelect.value === 'knockout' && this.value) {
+      const participants = parseInt(this.value);
+      if (participants && !isPowerOfTwo(participants)) {
+        this.classList.add('border-red-500', 'border-2');
+        
+        // Show inline hint
+        let hint = this.nextElementSibling;
+        if (!hint || !hint.classList.contains('knockout-hint')) {
+          hint = document.createElement('div');
+          hint.className = 'knockout-hint text-red-400 text-sm mt-2 flex items-center gap-2';
+          hint.innerHTML = '<i class="fas fa-info-circle"></i>Must be a power of 2 (2, 4, 8, 16, 32...)';
+          this.parentNode.appendChild(hint);
+        }
+      } else {
+        this.classList.remove('border-red-500', 'border-2');
+        const hint = this.parentNode.querySelector('.knockout-hint');
+        if (hint) hint.remove();
+      }
+    }
+  });
+  
+  // Clear validation when match type changes
+  matchTypeSelect.addEventListener('change', function() {
+    numParticipantsInput.classList.remove('border-red-500', 'border-2');
+    const hint = numParticipantsInput.parentNode.querySelector('.knockout-hint');
+    if (hint) hint.remove();
+  });
+});
 </script>
 
 <style>

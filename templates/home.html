@@ -108,18 +108,6 @@
   <img src="{% static 'images/omen.png' %}" alt="" class="w-full h-full object-cover object-center">
 </div>
 
-<!-- Floating Nav (top-right) -->
-<div class="fixed top-0 left-0 w-full z-20 pointer-events-none">
-  <div class="flex justify-end items-center pt-10 pr-16 w-full">
-    <a href="#esports-games" class="pointer-events-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-full px-8 py-3 text-base shadow-lg flex items-center gap-2 border-2 border-white/30 hover:from-orange-600 hover:to-orange-700 hover:scale-105 transition-all backdrop-blur-sm">
-      <i class="fas fa-play-circle"></i>
-      Watch Esports Games
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M13 18l6-6-6-6"/></svg>
-    </a>
-  </div>
-</div>
-
-
 <div class="relative z-20 h-screen flex flex-col justify-between">
   <!-- Left-aligned: Logo (repositionable), Heading, and Buttons -->
   <div class="absolute top-1/2 left-4 sm:left-12 md:left-[7vw] -translate-y-1/2 z-30 flex flex-col items-start max-w-[86vw] md:max-w-none">
@@ -431,31 +419,45 @@
       <!-- Contact Cards -->
       <div class="grid md:grid-cols-2 gap-8 mb-12">
         <!-- Email Card -->
-        <div class="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 group">
-          <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+        <div class="bg-gradient-to-br from-orange-500/30 to-pink-500/30 backdrop-blur-sm rounded-2xl p-8 border-2 border-orange-500 hover:border-orange-400 transition-all duration-300 group shadow-xl hover:shadow-2xl hover:shadow-orange-500/50">
+          <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 animate-pulse">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
             </svg>
           </div>
-          <h3 class="text-2xl font-bold text-white mb-3">Email Us</h3>
-          <p class="text-gray-400 mb-4">Send us an email and we'll respond within 24 hours</p>
-          <a href="mailto:support@tournifyx.com" class="inline-block text-orange-500 hover:text-orange-400 font-semibold transition-colors duration-300">
-            support@tournifyx.com
-          </a>
+          <h3 class="text-3xl font-bold text-white mb-3 text-center">📧 Email Us</h3>
+          <p class="text-gray-200 mb-6 text-center text-lg">Send us an email and we'll respond within 24 hours</p>
+          <div class="bg-black/40 backdrop-blur-md rounded-lg p-4 border border-orange-500/50">
+            <a href="mailto:info_tournify@gmail.com" class="block text-center text-orange-400 hover:text-orange-300 font-bold text-xl transition-colors duration-300 break-all">
+              info_tournify@gmail.com
+            </a>
+          </div>
+          <div class="mt-4 text-center">
+            <span class="inline-block bg-orange-500/20 text-orange-300 px-4 py-2 rounded-full text-sm font-semibold">
+              <i class="fas fa-bolt mr-2"></i>Quick Response Guaranteed
+            </span>
+          </div>
         </div>
 
         <!-- General Inquiries Card -->
-        <div class="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 group">
-          <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+        <div class="bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-sm rounded-2xl p-8 border-2 border-purple-500 hover:border-purple-400 transition-all duration-300 group shadow-xl hover:shadow-2xl hover:shadow-purple-500/50">
+          <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 animate-pulse">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
           </div>
-          <h3 class="text-2xl font-bold text-white mb-3">General Inquiries</h3>
-          <p class="text-gray-400 mb-4">For partnerships, sponsorships, and other inquiries</p>
-          <a href="mailto:info@tournifyx.com" class="inline-block text-purple-500 hover:text-purple-400 font-semibold transition-colors duration-300">
-            info@tournifyx.com
-          </a>
+          <h3 class="text-3xl font-bold text-white mb-3 text-center">💼 General Inquiries</h3>
+          <p class="text-gray-200 mb-6 text-center text-lg">For partnerships, sponsorships, and business inquiries</p>
+          <div class="bg-black/40 backdrop-blur-md rounded-lg p-4 border border-purple-500/50">
+            <a href="mailto:info_tournify@gmail.com" class="block text-center text-purple-400 hover:text-purple-300 font-bold text-xl transition-colors duration-300 break-all">
+              info_tournify@gmail.com
+            </a>
+          </div>
+          <div class="mt-4 text-center">
+            <span class="inline-block bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm font-semibold">
+              <i class="fas fa-handshake mr-2"></i>Professional Support
+            </span>
+          </div>
         </div>
       </div>
 
@@ -655,6 +657,24 @@
     esportsButton.addEventListener('click', function(e) {
       e.preventDefault();
       const targetSection = document.getElementById('esports-games');
+      if (targetSection) {
+        targetSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  })();
+</script>
+<script>
+  // Smooth scroll for "Leaderboard" button
+  (function(){
+    const leaderboardButton = document.querySelector('a[href="#bg"]');
+    if (!leaderboardButton) return;
+    
+    leaderboardButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetSection = document.getElementById('bg');
       if (targetSection) {
         targetSection.scrollIntoView({
           behavior: 'smooth',

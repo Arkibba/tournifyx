@@ -171,6 +171,16 @@
         <i class="fa-solid fa-house text-white text-xl group-hover:text-orange-300 transition"></i>
         <span class="text-xs text-white opacity-80 group-hover:opacity-100">Home</span>
       </a>
+      {% if request.resolver_match.url_name == 'home' %}
+      <a href="#bg" class="scroll-link flex flex-col items-center group float-on-hover">
+        <i class="fa-solid fa-chart-line text-white text-xl group-hover:text-orange-300 transition"></i>
+        <span class="text-xs text-white opacity-80 group-hover:opacity-100">Board</span>
+      </a>
+      <a href="#esports-games" class="scroll-link flex flex-col items-center group float-on-hover">
+        <i class="fa-solid fa-gamepad text-white text-xl group-hover:text-orange-300 transition"></i>
+        <span class="text-xs text-white opacity-80 group-hover:opacity-100">Games</span>
+      </a>
+      {% endif %}
       <a href="{% url 'user_tournaments' %}" class="flex flex-col items-center group float-on-hover">
         <i class="fa-solid fa-trophy text-white text-xl group-hover:text-orange-300 transition"></i>
         <span class="text-xs text-white opacity-80 group-hover:opacity-100">Tournaments</span>
@@ -231,6 +241,27 @@
           closeIcon.classList.add('hidden');
           openIcon.classList.remove('hidden');
         }
+      });
+    })();
+
+    // Smooth scroll for quick navigation links (Home page only)
+    (function(){
+      const scrollLinks = document.querySelectorAll('.scroll-link');
+      scrollLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          const href = this.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            e.preventDefault();
+            const targetId = href.substring(1);
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+              targetSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }
+        });
       });
     })();
   </script>
