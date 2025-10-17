@@ -153,3 +153,45 @@ class LeaveRequest(models.Model):
     
     def __str__(self):
         return f"{self.player.name} - Leave Request ({self.status})"
+
+
+class Payment(models.Model):
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('pending_approval', 'Pending Approval'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('bkash', 'bKash'),
+        ('nagad', 'Nagad'),
+        ('rocket', 'Rocket'),
+        ('card', 'Credit/Debit Card'),
+        ('manual', 'Manual/Bank Transfer'),
+    ]
+    
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='payments')
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='payments')
+    player = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='bkash')
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    
+    transaction_id = models.CharField(max_length=100, unique=True)
+    gateway_transaction_id = models.CharField(max_length=100, blank=True, null=True)  # ID from payment gateway
+    
+    payment_details = models.JSONField(default=dict, blank=True)  # Store additional payment info
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Payment {self.transaction_id} - {self.user_profile.user.username} - {self.status}"

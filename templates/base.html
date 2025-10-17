@@ -151,6 +151,10 @@
         <i class="fa-solid fa-circle-info text-white text-xl group-hover:text-orange-300 transition"></i>
         <span class="text-xs text-white opacity-80 group-hover:opacity-100">About</span>
       </a>
+      <a href="{% url 'support' %}" class="flex flex-col items-center group float-on-hover">
+        <i class="fa-solid fa-headset text-white text-xl group-hover:text-orange-300 transition"></i>
+        <span class="text-xs text-white opacity-80 group-hover:opacity-100">Support</span>
+      </a>
       {% if request.resolver_match.url_name in 'user_tournaments public_tournaments host_tournament join_tournament' %}
         <a href="{% url 'public_tournaments' %}" class="flex flex-col items-center group float-on-hover">
           <i class="fa-solid fa-globe text-white text-xl group-hover:text-orange-300 transition"></i>

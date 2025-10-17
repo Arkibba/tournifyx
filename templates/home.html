@@ -5,7 +5,14 @@
 
 {% block extra_css %}
 <style>
-  html, body { height: 100%; margin: 0; padding: 0; overflow: auto; }
+  html, body { 
+    height: 100%; 
+    margin: 0; 
+    padding: 0; 
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    width: 100%;
+    max-width: 100vw;
+  }
   
   /* Play overlay/button shown when autoplay is blocked or user needs to start playback */
   #videoPlayOverlay { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.45)); }
@@ -28,7 +35,7 @@
     right: 1.5rem;
     top: 2vh;
     max-height: 95vh;
-    max-width: 60vw;
+    max-width: 60vw; 
     width: auto;
     border-radius: 12px;
     overflow: hidden;
@@ -42,9 +49,9 @@
   }
 
   @keyframes floatOmen {
-    0% { transform: translateX(0) scale(1.22) translateY(0); }
-    50% { transform: translateX(0) scale(1.22) translateY(-24px); }
-    100% { transform: translateX(0) scale(1.22) translateY(0); }
+    0% { transform: translateX(0) scale(1.15) translateY(0); } /* Reduced from 1.22 */
+    50% { transform: translateX(0) scale(1.15) translateY(-24px); }
+    100% { transform: translateX(0) scale(1.15) translateY(0); }
   }
   #sideLongImage.show { 
     transform: translateX(0) scale(1.02);
@@ -111,6 +118,8 @@
 
 
 {% block content %}
+<!-- Main overflow wrapper -->
+<div class="w-full overflow-x-hidden">
 <!-- Background Video -->
 <div id="videoWrapper" class="fixed inset-0 z-0">
   <video id="heroVideo" class="w-full h-full object-cover brightness-[.7] contrast-110" autoplay muted playsinline poster="{% static 'images/background.jpg' %}">
@@ -132,15 +141,15 @@
 </div>
 
 <!-- Background image that will fade in after the video ends -->
-<div id="heroBg" class="fixed top-0 left-0 w-full h-full z-0 opacity-0 transition-opacity duration-700 ease-out bg-center bg-cover" style="background-image: url('{% static 'images/bg.png' %}');"></div>
+<div id="heroBg" class="fixed top-0 left-0 w-screen h-screen z-0 opacity-0 transition-opacity duration-700 ease-out bg-center bg-cover" style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; width: 100vw; height: 100vh; min-width: 100%; min-height: 100%;"></div>
 <!-- Right-side long image (hidden initially, shows on video end) -->
 <div id="sideLongImage" aria-hidden="true" class="hidden md:block">
-  <img src="{% static 'images/omen.png' %}" alt="" class="w-full h-full object-cover">
+  <img src="{% static 'images/omen.png' %}" alt="" class="w-full h-full object-cover object-center">
 </div>
 
 
 <!-- Left floating image removed for cleaner layout -->
-<div class="fixed top-0 left-0 w-full h-full z-10 pointer-events-none "></div>
+<div class="fixed top-0 left-0 w-screen h-screen z-10 pointer-events-none overflow-hidden"></div>
 
 <!-- Floating Nav (top-right) -->
 <div class="fixed top-0 left-0 w-full z-20 pointer-events-none">
@@ -176,7 +185,7 @@
 </div>
 
 <!-- Additional full-screen background section revealed when scrolling down -->
-<section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center" style="background-image: url('{% static 'images/bg2.png' %}');">
+<section id="bg" class="relative w-full min-h-screen bg-center bg-cover bg-no-repeat flex items-center justify-center overflow-hidden" style="background-image: url('{% static 'images/bg2.png' %}'); background-size: cover; background-position: center; min-width: 100vw; min-height: 100vh;">
   <div class="absolute inset-0 bg-transparent"></div>
   <div class="relative z-10 w-full max-w-6xl mx-auto p-8">
   <h2 class="text-4xl md:text-5xl font-extrabold mb-8 text-center">Players' Picks — Leaders' Favorites</h2>
@@ -228,9 +237,9 @@
 
 
 <!-- New section: Most Promising Esports Games -->
-<section id="esports-games" class="relative w-full min-h-screen flex items-center justify-center -mt-6 md:-mt-8 py-20">
+<section id="esports-games" class="relative w-full min-h-screen flex items-center justify-center -mt-6 md:-mt-8 py-20 overflow-hidden">
   <!-- background image for esports games section -->
-  <div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static 'images/bg3.png' %}');"></div>
+  <div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static 'images/bg3.png' %}'); background-size: cover; background-position: center; min-width: 100vw; min-height: 100vh;"></div>
   <div class="relative z-10 max-w-6xl mx-auto px-8">
     <div class="text-center mb-16">
       <h2 class="text-4xl md:text-6xl font-extrabold text-white mb-6">Most Promising <span class="text-orange-500">Esports Games</span></h2>
@@ -346,6 +355,90 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Us Section -->
+<section id="contact" class="relative w-full min-h-screen flex items-center justify-center" style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-attachment: fixed;">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
+  
+  <div class="relative z-10 container mx-auto px-4 py-20">
+    <div class="max-w-4xl mx-auto text-center">
+      <!-- Section Header -->
+      <div class="mb-16">
+        <h2 class="text-5xl md:text-6xl font-bold text-white mb-4">
+          Get In <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">Touch</span>
+        </h2>
+        <p class="text-xl text-gray-300">Have questions? We'd love to hear from you.</p>
+      </div>
+
+      <!-- Contact Cards -->
+      <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <!-- Email Card -->
+        <div class="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 group">
+          <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-3">Email Us</h3>
+          <p class="text-gray-400 mb-4">Send us an email and we'll respond within 24 hours</p>
+          <a href="mailto:support@tournifyx.com" class="inline-block text-orange-500 hover:text-orange-400 font-semibold transition-colors duration-300">
+            support@tournifyx.com
+          </a>
+        </div>
+
+        <!-- General Inquiries Card -->
+        <div class="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 group">
+          <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-3">General Inquiries</h3>
+          <p class="text-gray-400 mb-4">For partnerships, sponsorships, and other inquiries</p>
+          <a href="mailto:info@tournifyx.com" class="inline-block text-purple-500 hover:text-purple-400 font-semibold transition-colors duration-300">
+            info@tournifyx.com
+          </a>
+        </div>
+      </div>
+
+      <!-- Support Center Redirect Box -->
+      <div class="bg-gradient-to-br from-orange-500/20 to-pink-500/20 backdrop-blur-sm rounded-2xl p-10 border-2 border-orange-500/30 hover:border-orange-500/50 transition-all duration-300">
+        <div class="text-center">
+          <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-3xl font-bold text-white mb-4">Need Help?</h3>
+          <p class="text-lg text-gray-300 mb-6">Visit our comprehensive Support Center for FAQs, troubleshooting guides, and detailed help articles.</p>
+          <a href="{% url 'support' %}" class="inline-block px-10 py-4 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-lg font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+            Visit Support Center
+          </a>
+          <p class="text-sm text-gray-400 mt-4">Find answers to common questions and get help instantly</p>
+        </div>
+      </div>
+
+      <!-- Social Links (Optional) -->
+      <div class="mt-12 flex justify-center space-x-6">
+        <a href="#" class="w-12 h-12 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-gray-700 hover:border-orange-500 transition-colors duration-300 group">
+          <svg class="w-6 h-6 text-gray-400 group-hover:text-orange-500 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+          </svg>
+        </a>
+        <a href="#" class="w-12 h-12 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-gray-700 hover:border-orange-500 transition-colors duration-300 group">
+          <svg class="w-6 h-6 text-gray-400 group-hover:text-orange-500 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Footer Text -->
+      <div class="mt-12 pt-8 border-t border-gray-800">
+        <p class="text-gray-500">© 2025 TournifyX. All rights reserved.</p>
       </div>
     </div>
   </div>
@@ -499,4 +592,5 @@
     }
   })();
 </script>
+</div> <!-- Close overflow wrapper -->
 {% endblock %}

@@ -3,222 +3,613 @@
 {% load widget_tweaks %}
 {% block title %}Host a Tournament{% endblock %}
 
+{% block extra_css %}
+<style>
+  .step-indicator {
+    transition: all 0.3s ease;
+  }
+  
+  .step-indicator.active {
+    background: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+    transform: scale(1.1);
+  }
+  
+  .step-indicator.completed {
+    background: #10b981;
+  }
+  
+  .form-section {
+    display: none;
+    animation: fadeInUp 0.4s ease;
+  }
+  
+  .form-section.active {
+    display: block;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .info-card {
+    transition: all 0.3s ease;
+  }
+  
+  .info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Full Screen Background Image -->
+<!-- Background -->
 <div 
   class="fixed inset-0 w-full h-full z-0"
-  style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
+  style="background-image: url('{% static 'images/bg.png' %}'); background-size: cover; background-position: center; background-attachment: fixed;"
 ></div>
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-0"></div>
 
-<div class="min-h-screen flex flex-col items-center py-8 px-4 relative z-10">
- <!-- Logo -->
- <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-24 sm:w-32 h-24 sm:h-32 mb-6">
+<div class="min-h-screen flex flex-col items-center py-12 px-4 relative z-10">
+  <!-- Header Section -->
+  <div class="text-center mb-8">
+    <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-20 h-20 mx-auto mb-4">
+    <h1 class="text-4xl md:text-5xl font-bold text-white mb-3">
+      Host Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">Tournament</span>
+    </h1>
+    <p class="text-gray-300 text-lg">Create an epic gaming experience in just a few steps</p>
+  </div>
 
-
- <div class="w-full max-w-4xl sm:max-w-3xl md:max-w-4xl bg-black text-white rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-md border border-gray-700">
-   <h2 class="text-3xl font-bold mb-6 text-center">Host a New Tournament</h2>
-
-
-   <form method="post" class="space-y-6">
-     {% csrf_token %}
-    {% if form.non_field_errors %}
-      <div class="mb-2 text-red-400">
-        {% for err in form.non_field_errors %}
-          <div>{{ err }}</div>
-        {% endfor %}
+  <!-- Main Container -->
+  <div class="w-full max-w-5xl">
+    <!-- Progress Steps -->
+    <div class="mb-8">
+      <div class="flex items-center justify-center space-x-4">
+        <div class="flex items-center">
+          <div class="step-indicator active w-10 h-10 rounded-full flex items-center justify-center text-white font-bold border-2 border-orange-500" id="step1">
+            1
+          </div>
+          <span class="ml-2 text-white font-semibold hidden sm:inline" id="stepText1">Basic Info</span>
+        </div>
+        <div class="w-12 h-1 bg-gray-600" id="line1"></div>
+        <div class="flex items-center">
+          <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-gray-700 border-2 border-gray-600" id="step2">
+            2
+          </div>
+          <span class="ml-2 text-gray-400 font-semibold hidden sm:inline" id="stepText2">Settings</span>
+        </div>
+        <div class="w-12 h-1 bg-gray-600" id="line2"></div>
+        <div class="flex items-center">
+          <div class="step-indicator w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-gray-700 border-2 border-gray-600" id="step3">
+            3
+          </div>
+          <span class="ml-2 text-gray-400 font-semibold hidden sm:inline" id="stepText3">Review</span>
+        </div>
       </div>
-    {% endif %}
-     {{ form.name.label_tag }}
-  {{ form.name|add_class:"form-input w-full" }}
-  {% if form.name.errors %}<div class="text-red-400 text-sm mt-1">{{ form.name.errors.0 }}</div>{% endif %}
-     {{ form.description.label_tag }}
-  {{ form.description|add_class:"form-input w-full" }}
-     {{ form.category.label_tag }}
-     <div class="relative">
-  {{ form.category|add_class:"form-input w-full appearance-none pr-10" }}
-       <span class="absolute inset-y-0 right-3 flex items-center text-gray-300 pointer-events-none"><i class="fa fa-caret-down"></i></span>
-     </div>
-     {{ form.num_participants.label_tag }}
-  {{ form.num_participants|add_class:"form-input w-full" }}
-  {% if form.num_participants.errors %}<div class="text-red-400 text-sm mt-1">{{ form.num_participants.errors.0 }}</div>{% endif %}
-     {{ form.match_type.label_tag }}
-     <div class="relative">
-  {{ form.match_type|add_class:"form-input w-full appearance-none pr-10" }}
-       <span class="absolute inset-y-0 right-3 flex items-center text-gray-300 pointer-events-none"><i class="fa fa-caret-down"></i></span>
-     </div>
+    </div>
 
-     <!-- New fields -->
+    <!-- Form Card -->
+    <div class="bg-black/80 backdrop-blur-md text-white rounded-2xl shadow-2xl p-8 border border-orange-500/20">
+      <form method="post" id="tournamentForm" class="space-y-6">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+          <div class="mb-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
+            {% for err in form.non_field_errors %}
+              <div class="text-red-400">{{ err }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
 
-   <div>
-     {{ form.is_paid.label_tag }}
-     {{ form.is_paid }}
-   </div>
-   <div>
-     {{ form.price.label_tag }}
-  {{ form.price|add_class:"form-input w-full" }}
-   </div>
-   <div>
-     {{ form.is_public.label_tag }}
-     {{ form.is_public }}
-   </div>
+        <!-- Section 1: Basic Information -->
+        <div class="form-section active" id="section1">
+          <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
+            <span class="w-1 h-8 bg-gradient-to-b from-orange-500 to-pink-500 rounded-full"></span>
+            Basic Information
+          </h3>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- Tournament Name -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-300 mb-2">
+                <i class="fas fa-trophy text-orange-500 mr-2"></i>Tournament Name
+              </label>
+              {{ form.name|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all" }}
+              {% if form.name.errors %}<div class="text-red-400 text-sm mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
 
-   <div>
-     {{ form.is_active.label_tag }}
-     {{ form.is_active }}
-   </div>
+            <!-- Description -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-300 mb-2">
+                <i class="fas fa-align-left text-orange-500 mr-2"></i>Description
+              </label>
+              {{ form.description|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all resize-none" }}
+            </div>
 
-   <div>
-     {{ form.registration_deadline.label_tag }}
-  {{ form.registration_deadline|add_class:"form-input w-full" }}
-   </div>
+            <!-- Game Category -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">
+                <i class="fas fa-gamepad text-orange-500 mr-2"></i>Game Category
+              </label>
+              <div class="relative">
+                {{ form.category|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer" }}
+                <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+              </div>
+            </div>
 
-   {{ form.players.label_tag }}
-  {{ form.players|add_class:"form-input w-full" }}
+            <!-- Number of Participants -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">
+                <i class="fas fa-users text-orange-500 mr-2"></i>Number of Participants
+              </label>
+              {{ form.num_participants|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all" }}
+              {% if form.num_participants.errors %}<div class="text-red-400 text-sm mt-1">{{ form.num_participants.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
 
+          <div class="flex justify-end mt-8">
+            <button type="button" onclick="nextSection(2)" class="px-8 py-3 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105">
+              Next Step <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+          </div>
+        </div>
 
-     <button type="submit" class="btn btn-primary w-full">Create Tournament</button>
-   </form>
- </div>
+        <!-- Section 2: Tournament Settings -->
+        <div class="form-section" id="section2">
+          <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
+            <span class="w-1 h-8 bg-gradient-to-b from-orange-500 to-pink-500 rounded-full"></span>
+            Tournament Settings
+          </h3>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- Match Type -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">
+                <i class="fas fa-sitemap text-orange-500 mr-2"></i>Tournament Format
+              </label>
+              <div class="relative">
+                {{ form.match_type|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer" }}
+                <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+              </div>
+            </div>
+
+            <!-- Registration Deadline -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">
+                <i class="fas fa-calendar-alt text-orange-500 mr-2"></i>Registration Deadline
+              </label>
+              {{ form.registration_deadline|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all" }}
+            </div>
+
+            <!-- Paid Tournament Toggle -->
+            <div class="md:col-span-2">
+              <div class="flex items-center justify-between p-4 bg-white/5 border border-gray-600 rounded-lg hover:border-orange-500/50 transition-all">
+                <div class="flex items-center gap-3">
+                  <i class="fas fa-dollar-sign text-orange-500 text-xl"></i>
+                  <div>
+                    <label class="font-semibold text-white cursor-pointer">Paid Tournament</label>
+                    <p class="text-sm text-gray-400">Charge an entry fee for participants</p>
+                  </div>
+                </div>
+                {{ form.is_paid|add_class:"toggle-checkbox" }}
+              </div>
+            </div>
+
+            <!-- Entry Fee (conditional) -->
+            <div class="md:col-span-2" id="priceField" style="display: none;">
+              <label class="block text-sm font-semibold text-gray-300 mb-2">
+                <i class="fas fa-money-bill-wave text-orange-500 mr-2"></i>Entry Fee (BDT)
+              </label>
+              {{ form.price|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all" }}
+            </div>
+
+            <!-- Public Tournament Toggle -->
+            <div class="md:col-span-2">
+              <div class="flex items-center justify-between p-4 bg-white/5 border border-gray-600 rounded-lg hover:border-orange-500/50 transition-all">
+                <div class="flex items-center gap-3">
+                  <i class="fas fa-globe text-orange-500 text-xl"></i>
+                  <div>
+                    <label class="font-semibold text-white cursor-pointer">Public Tournament</label>
+                    <p class="text-sm text-gray-400">Make this tournament visible in public listings</p>
+                  </div>
+                </div>
+                {{ form.is_public|add_class:"toggle-checkbox" }}
+              </div>
+            </div>
+
+            <!-- Active Tournament Toggle -->
+            <div class="md:col-span-2">
+              <div class="flex items-center justify-between p-4 bg-white/5 border border-gray-600 rounded-lg hover:border-orange-500/50 transition-all">
+                <div class="flex items-center gap-3">
+                  <i class="fas fa-play-circle text-orange-500 text-xl"></i>
+                  <div>
+                    <label class="font-semibold text-white cursor-pointer">Active Tournament</label>
+                    <p class="text-sm text-gray-400">Allow participants to join immediately</p>
+                  </div>
+                </div>
+                {{ form.is_active|add_class:"toggle-checkbox" }}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between mt-8">
+            <button type="button" onclick="prevSection(1)" class="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all duration-300">
+              <i class="fas fa-arrow-left mr-2"></i>Previous
+            </button>
+            <button type="button" onclick="nextSection(3)" class="px-8 py-3 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105">
+              Next Step <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 3: Review & Submit -->
+        <div class="form-section" id="section3">
+          <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
+            <span class="w-1 h-8 bg-gradient-to-b from-orange-500 to-pink-500 rounded-full"></span>
+            Review & Submit
+          </h3>
+
+          <!-- Info Cards -->
+          <div class="grid md:grid-cols-2 gap-4 mb-6">
+            <div class="info-card bg-gradient-to-br from-orange-500/10 to-pink-500/10 border border-orange-500/30 rounded-xl p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-trophy text-white"></i>
+                </div>
+                <h4 class="font-bold text-lg">Tournament Details</h4>
+              </div>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-gray-400">Name:</span><span id="reviewName" class="font-semibold">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">Category:</span><span id="reviewCategory" class="font-semibold">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">Participants:</span><span id="reviewParticipants" class="font-semibold">-</span></div>
+              </div>
+            </div>
+
+            <div class="info-card bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-xl p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-cog text-white"></i>
+                </div>
+                <h4 class="font-bold text-lg">Configuration</h4>
+              </div>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-gray-400">Format:</span><span id="reviewFormat" class="font-semibold">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">Entry Fee:</span><span id="reviewFee" class="font-semibold">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">Visibility:</span><span id="reviewVisibility" class="font-semibold">-</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden Players Field -->
+          <div style="display: none;">
+            {{ form.players }}
+          </div>
+
+          <div class="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
+            <div class="flex items-start gap-3">
+              <i class="fas fa-info-circle text-orange-500 text-xl mt-1"></i>
+              <div>
+                <h5 class="font-bold text-white mb-1">Before You Submit</h5>
+                <p class="text-sm text-gray-300">Double-check all details. You can edit most settings later from your tournament dashboard.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between mt-8">
+            <button type="button" onclick="prevSection(2)" class="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all duration-300">
+              <i class="fas fa-arrow-left mr-2"></i>Previous
+            </button>
+            <button type="submit" class="px-10 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <i class="fas fa-check-circle mr-2"></i>Create Tournament
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
-
-<!-- Modal -->
+<!-- Success Modal -->
 {% if tournament_code %}
-<div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 px-4 z-50">
- <div class="relative bg-gray-900 text-white rounded-lg shadow-2xl p-8 w-full max-w-md border border-gray-700 animate-fade-in">
-   <!-- Close Icon -->
-   <button id="closeModal" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl font-bold transition-colors">
-     &times;
-   </button>
-   
-   <!-- Success Icon -->
-   <div class="text-center mb-6">
-     <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-       <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-       </svg>
-     </div>
-   </div>
-   
-   <h2 class="text-2xl font-bold mb-4 text-center text-green-400">🎉 Congratulations!</h2>
-   <p class="mb-4 text-center text-gray-300">Your tournament <strong>"{{ tournament.name }}"</strong> was created successfully!</p>
-   <p class="mb-4 text-center text-gray-300">Here is your unique tournament code:</p>
-   
-   <!-- Tournament Code Display -->
-   <div class="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6">
-     <div class="flex items-center justify-between">
-       <div class="text-center flex-1">
-         <div id="tournamentCode" class="text-3xl font-mono font-bold text-orange-400 tracking-wider select-all">{{ tournament_code }}</div>
-         <div class="text-sm text-gray-400 mt-1">Tournament Code</div>
-       </div>
-       <button id="copyCodeBtn" class="ml-4 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md transition-colors flex items-center space-x-2">
-         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-         </svg>
-         <span id="copyBtnText">Copy</span>
-       </button>
-     </div>
-   </div>
-   
-   <div class="flex justify-center space-x-3">
-     <button id="closeModalButton" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors">Close</button>
-     <a href="{% url 'tournament_dashboard' tournament_id=tournament.id %}" class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md transition-colors">Go to Dashboard</a>
-   </div>
- </div>
+<div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm px-4 z-50">
+  <div class="relative bg-gradient-to-br from-gray-900 to-black text-white rounded-2xl shadow-2xl p-8 w-full max-w-md border-2 border-orange-500/50 animate-fade-in">
+    <!-- Close Icon -->
+    <button id="closeModal" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl font-bold transition-colors">
+      &times;
+    </button>
+    
+    <!-- Success Icon -->
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-4 animate-bounce">
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+    </div>
+    
+    <h2 class="text-3xl font-bold mb-4 text-center">
+      <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">🎉 Success!</span>
+    </h2>
+    <p class="mb-2 text-center text-gray-300">Your tournament</p>
+    <p class="mb-4 text-center font-bold text-xl text-white">"{{ tournament.name }}"</p>
+    <p class="mb-6 text-center text-gray-300">has been created successfully!</p>
+    
+    <!-- Tournament Code Display -->
+    <div class="bg-gradient-to-br from-orange-500/20 to-pink-500/20 border-2 border-orange-500/50 rounded-xl p-5 mb-6">
+      <p class="text-center text-sm text-gray-300 mb-2">Your Tournament Code</p>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex-1 text-center">
+          <div id="tournamentCode" class="text-3xl font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400 tracking-wider select-all">{{ tournament_code }}</div>
+        </div>
+        <button id="copyCodeBtn" class="flex-shrink-0 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-4 py-3 rounded-lg transition-all transform hover:scale-105 flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+          <span id="copyBtnText" class="font-bold">Copy</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="flex gap-3">
+      <button id="closeModalButton" class="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all">
+        Close
+      </button>
+      <a href="{% url 'tournament_dashboard' tournament_id=tournament.id %}" class="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold rounded-lg transition-all text-center">
+        Dashboard
+      </a>
+    </div>
+  </div>
 </div>
 {% endif %}
 
-
 <script>
- document.addEventListener('DOMContentLoaded', function () {
-   const modal = document.getElementById('successModal');
-   if (modal) {
-     const closeModal = document.getElementById('closeModal');
-     const closeModalButton = document.getElementById('closeModalButton');
-     const copyCodeBtn = document.getElementById('copyCodeBtn');
-     const copyBtnText = document.getElementById('copyBtnText');
-     const tournamentCode = document.getElementById('tournamentCode');
-     
-     // Close modal functionality
-     [closeModal, closeModalButton].forEach(button => {
-       button.addEventListener('click', function () {
-         modal.style.display = 'none';
-       });
-     });
-     
-     // Copy to clipboard functionality
-     if (copyCodeBtn) {
-       copyCodeBtn.addEventListener('click', function () {
-         const codeText = tournamentCode.textContent;
-         
-         // Try to use the modern clipboard API
-         if (navigator.clipboard && window.isSecureContext) {
-           navigator.clipboard.writeText(codeText).then(() => {
-             showCopySuccess();
-           }).catch(() => {
-             fallbackCopyTextToClipboard(codeText);
-           });
-         } else {
-           fallbackCopyTextToClipboard(codeText);
-         }
-       });
-     }
-     
-     function fallbackCopyTextToClipboard(text) {
-       const textArea = document.createElement('textarea');
-       textArea.value = text;
-       textArea.style.position = 'fixed';
-       textArea.style.left = '-999999px';
-       textArea.style.top = '-999999px';
-       document.body.appendChild(textArea);
-       textArea.focus();
-       textArea.select();
-       
-       try {
-         document.execCommand('copy');
-         showCopySuccess();
-       } catch (err) {
-         console.error('Unable to copy to clipboard', err);
-         copyBtnText.textContent = 'Failed';
-         setTimeout(() => {
-           copyBtnText.textContent = 'Copy';
-         }, 2000);
-       }
-       
-       document.body.removeChild(textArea);
-     }
-     
-     function showCopySuccess() {
-       copyBtnText.textContent = 'Copied!';
-       copyCodeBtn.classList.add('bg-green-600');
-       copyCodeBtn.classList.remove('bg-orange-600');
-       tournamentCode.classList.add('text-green-400');
-       tournamentCode.classList.remove('text-orange-400');
-       
-       setTimeout(() => {
-         copyBtnText.textContent = 'Copy';
-         copyCodeBtn.classList.remove('bg-green-600');
-         copyCodeBtn.classList.add('bg-orange-600');
-         tournamentCode.classList.remove('text-green-400');
-         tournamentCode.classList.add('text-orange-400');
-       }, 2000);
-     }
-   } else {
-     console.error('Modal not found in the DOM.');
-   }
- });
+// Multi-step form navigation
+let currentSection = 1;
+
+function nextSection(section) {
+  // Validate current section before moving
+  if (currentSection === 1) {
+    const name = document.querySelector('input[name="name"]').value;
+    const participants = document.querySelector('input[name="num_participants"]').value;
+    
+    if (!name || !participants) {
+      alert('Please fill in Tournament Name and Number of Participants');
+      return;
+    }
+  }
+  
+  // Hide current section
+  const currentSectionEl = document.getElementById(`section${currentSection}`);
+  if (currentSectionEl) {
+    currentSectionEl.classList.remove('active');
+  }
+  
+  // Update current step indicator
+  const currentStepEl = document.getElementById(`step${currentSection}`);
+  if (currentStepEl) {
+    currentStepEl.classList.remove('active');
+    currentStepEl.classList.add('completed');
+    currentStepEl.classList.remove('bg-gray-700', 'border-gray-600');
+    currentStepEl.classList.add('bg-green-500', 'border-green-500');
+  }
+  
+  // Update current step text color
+  const currentStepText = document.getElementById(`stepText${currentSection}`);
+  if (currentStepText) {
+    currentStepText.classList.remove('text-white');
+    currentStepText.classList.add('text-gray-400');
+  }
+  
+  // Show next section
+  currentSection = section;
+  const nextSectionEl = document.getElementById(`section${section}`);
+  if (nextSectionEl) {
+    nextSectionEl.classList.add('active');
+  }
+  
+  // Update next step indicator
+  const nextStepEl = document.getElementById(`step${section}`);
+  if (nextStepEl) {
+    nextStepEl.classList.add('active');
+    nextStepEl.classList.remove('bg-gray-700', 'border-gray-600');
+    nextStepEl.classList.add('border-orange-500');
+  }
+  
+  // Update next step text color
+  const nextStepText = document.getElementById(`stepText${section}`);
+  if (nextStepText) {
+    nextStepText.classList.remove('text-gray-400');
+    nextStepText.classList.add('text-white');
+  }
+  
+  // Update review section if going to step 3
+  if (section === 3) {
+    updateReview();
+  }
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prevSection(section) {
+  // Hide current section
+  const currentSectionEl = document.getElementById(`section${currentSection}`);
+  if (currentSectionEl) {
+    currentSectionEl.classList.remove('active');
+  }
+  
+  // Update current step indicator
+  const currentStepEl = document.getElementById(`step${currentSection}`);
+  if (currentStepEl) {
+    currentStepEl.classList.remove('active');
+    currentStepEl.classList.remove('border-orange-500');
+    currentStepEl.classList.add('bg-gray-700', 'border-gray-600');
+  }
+  
+  // Update current step text color
+  const currentStepText = document.getElementById(`stepText${currentSection}`);
+  if (currentStepText) {
+    currentStepText.classList.remove('text-white');
+    currentStepText.classList.add('text-gray-400');
+  }
+  
+  // Show previous section
+  currentSection = section;
+  const prevSectionEl = document.getElementById(`section${section}`);
+  if (prevSectionEl) {
+    prevSectionEl.classList.add('active');
+  }
+  
+  // Update previous step indicator
+  const prevStepEl = document.getElementById(`step${section}`);
+  if (prevStepEl) {
+    prevStepEl.classList.add('active');
+    prevStepEl.classList.remove('completed', 'bg-green-500', 'border-green-500', 'bg-gray-700', 'border-gray-600');
+    prevStepEl.classList.add('border-orange-500');
+  }
+  
+  // Update previous step text color
+  const prevStepText = document.getElementById(`stepText${section}`);
+  if (prevStepText) {
+    prevStepText.classList.remove('text-gray-400');
+    prevStepText.classList.add('text-white');
+  }
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateReview() {
+  // Get form values
+  const name = document.querySelector('input[name="name"]').value || '-';
+  const category = document.querySelector('select[name="category"]').selectedOptions[0]?.text || '-';
+  const participants = document.querySelector('input[name="num_participants"]').value || '-';
+  const format = document.querySelector('select[name="match_type"]').selectedOptions[0]?.text || '-';
+  const isPaid = document.querySelector('input[name="is_paid"]').checked;
+  const price = document.querySelector('input[name="price"]').value;
+  const isPublic = document.querySelector('input[name="is_public"]').checked;
+  
+  // Update review cards
+  const reviewName = document.getElementById('reviewName');
+  const reviewCategory = document.getElementById('reviewCategory');
+  const reviewParticipants = document.getElementById('reviewParticipants');
+  const reviewFormat = document.getElementById('reviewFormat');
+  const reviewFee = document.getElementById('reviewFee');
+  const reviewVisibility = document.getElementById('reviewVisibility');
+  
+  if (reviewName) reviewName.textContent = name;
+  if (reviewCategory) reviewCategory.textContent = category;
+  if (reviewParticipants) reviewParticipants.textContent = participants;
+  if (reviewFormat) reviewFormat.textContent = format;
+  if (reviewFee) reviewFee.textContent = isPaid ? `৳${price || '0'}` : 'Free';
+  if (reviewVisibility) reviewVisibility.textContent = isPublic ? 'Public' : 'Private';
+}
+
+// Toggle price field based on is_paid checkbox
+document.addEventListener('DOMContentLoaded', function() {
+  const isPaidCheckbox = document.querySelector('input[name="is_paid"]');
+  const priceField = document.getElementById('priceField');
+  
+  if (isPaidCheckbox) {
+    isPaidCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        priceField.style.display = 'block';
+      } else {
+        priceField.style.display = 'none';
+      }
+    });
+    
+    // Initial state
+    if (isPaidCheckbox.checked) {
+      priceField.style.display = 'block';
+    }
+  }
+});
+
+// Modal functionality
+document.addEventListener('DOMContentLoaded', function () {
+  const modal = document.getElementById('successModal');
+  if (modal) {
+    const closeModal = document.getElementById('closeModal');
+    const closeModalButton = document.getElementById('closeModalButton');
+    const copyCodeBtn = document.getElementById('copyCodeBtn');
+    const copyBtnText = document.getElementById('copyBtnText');
+    const tournamentCode = document.getElementById('tournamentCode');
+    
+    // Close modal functionality
+    [closeModal, closeModalButton].forEach(button => {
+      button.addEventListener('click', function () {
+        modal.style.display = 'none';
+      });
+    });
+    
+    // Copy to clipboard functionality
+    if (copyCodeBtn) {
+      copyCodeBtn.addEventListener('click', function () {
+        const codeText = tournamentCode.textContent;
+        
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(codeText).then(() => {
+            showCopySuccess();
+          }).catch(() => {
+            fallbackCopyTextToClipboard(codeText);
+          });
+        } else {
+          fallbackCopyTextToClipboard(codeText);
+        }
+      });
+    }
+    
+    function fallbackCopyTextToClipboard(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showCopySuccess();
+      } catch (err) {
+        copyBtnText.textContent = 'Failed';
+        setTimeout(() => {
+          copyBtnText.textContent = 'Copy';
+        }, 2000);
+      }
+      
+      document.body.removeChild(textArea);
+    }
+    
+    function showCopySuccess() {
+      copyBtnText.textContent = 'Copied!';
+      copyCodeBtn.classList.add('!from-green-500', '!to-emerald-600');
+      
+      setTimeout(() => {
+        copyBtnText.textContent = 'Copy';
+        copyCodeBtn.classList.remove('!from-green-500', '!to-emerald-600');
+      }, 2000);
+    }
+  }
+});
 </script>
 
 <style>
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.4s ease-out;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -228,11 +619,40 @@
 
 .select-all {
   user-select: all;
-  -webkit-user-select: all;
-  -moz-user-select: all;
-  -ms-user-select: all;
+}
+
+/* Custom toggle checkbox styling */
+.toggle-checkbox {
+  appearance: none;
+  width: 3.5rem;
+  height: 2rem;
+  background: #4b5563;
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-checkbox:checked {
+  background: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
+}
+
+.toggle-checkbox::before {
+  content: '';
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: white;
+  top: 0.25rem;
+  left: 0.25rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-checkbox:checked::before {
+  left: 1.75rem;
 }
 </style>
-
 
 {% endblock %}

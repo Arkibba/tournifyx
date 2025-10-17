@@ -201,8 +201,49 @@ def join_public_tournament(request, tournament_id):
                     'tournament_full': True  # Flag to show modal
                 })
             elif tournament.is_paid and tournament.price > 0:
-                messages.error(request, 'Payment gateway is currently disabled. You cannot join paid tournaments.')
+                # Check if user has completed payment
+                user_profile = UserProfile.objects.get(user=request.user)
+                payment_completed = Payment.objects.filter(
+                    tournament=tournament,
+                    user_profile=user_profile,
+                    status='completed'
+                ).exists()
+                
+                if not payment_completed:
+                    messages.warning(request, 'You need to complete payment before joining this tournament.')
+                    return redirect('payment_page', tournament_id=tournament.id)
+                
+                # Payment completed, proceed with joining
+                # Create the player
+                new_player = Player.objects.create(
+                    tournament=tournament,
+                    name=form.cleaned_data['name'],
+                    team_name=form.cleaned_data['ign'],
+                    # added_by can be null for public join
+                )
+                
+                # Link payment to player
+                payment = Payment.objects.filter(
+                    tournament=tournament,
+                    user_profile=user_profile,
+                    status='completed'
+                ).first()
+                if payment:
+                    payment.player = new_player
+                    payment.save()
+                
+                # Add TournamentParticipant entry for the user
+                TournamentParticipant.objects.get_or_create(
+                    tournament=tournament,
+                    user_profile=user_profile
+                )
+                # Link player to user profile
+                new_player.user_profile = user_profile
+                new_player.save()
+                
+                messages.success(request, f'Successfully joined {tournament.name}!')
             else:
+                # Free tournament - proceed normally
                 # Create the player
                 new_player = Player.objects.create(
                     tournament=tournament,
@@ -543,6 +584,10 @@ def host_tournament(request):
             # Explicitly set is_public and is_active from form.cleaned_data
             tournament.is_public = form.cleaned_data.get('is_public', False)
             tournament.is_active = form.cleaned_data.get('is_active', True)
+            # Explicitly set is_paid and price from form.cleaned_data
+            tournament.is_paid = form.cleaned_data.get('is_paid', False)
+            tournament.price = form.cleaned_data.get('price', 0)
+            print(f"[HOST DEBUG] is_paid: {tournament.is_paid}, price: {tournament.price}")
             # Generate a unique tournament code
             code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
             while Tournament.objects.filter(code=code).exists():
@@ -738,7 +783,112 @@ def join_tournament(request):
                                 'tournament_full': True  # Flag to show modal
                             })
                         elif tournament.is_paid and tournament.price > 0:
-                            messages.error(request, 'Payment gateway is currently disabled. You cannot join paid tournaments.')
+                            # Check if user has completed payment
+                            payment_completed = Payment.objects.filter(
+                                tournament=tournament,
+                                user_profile=user_profile,
+                                status='completed'
+                            ).exists()
+                            
+                            if not payment_completed:
+                                messages.warning(request, 'You need to complete payment before joining this tournament.')
+                                return redirect('payment_page', tournament_id=tournament.id)
+                            
+                            # Payment completed, proceed with joining
+                            # Create TournamentParticipant
+                            TournamentParticipant.objects.create(
+                                tournament=tournament,
+                                user_profile=user_profile
+                            )
+                            
+                            # Create Player entry using user's profile data
+                            new_player = Player.objects.create(
+                                tournament=tournament,
+                                name=request.user.username,  # Use username from profile
+                                team_name=request.user.username,  # Use username as team name
+                                added_by=None,  # Player added themselves
+                                user_profile=user_profile  # Link to user profile
+                            )
+                            
+                            # Link payment to player
+                            payment = Payment.objects.filter(
+                                tournament=tournament,
+                                user_profile=user_profile,
+                                status='completed'
+                            ).first()
+                            if payment:
+                                payment.player = new_player
+                                payment.save()
+                            
+                            # Check if tournament is now FULL and needs fixtures generated
+                            current_players = Player.objects.filter(tournament=tournament)
+                            count = current_players.count()
+                            
+                            print(f"[JOIN PAID DEBUG] Tournament: {tournament.name}")
+                            print(f"[JOIN PAID DEBUG] Current player count: {count}")
+                            print(f"[JOIN PAID DEBUG] Required participants: {tournament.num_participants}")
+                            print(f"[JOIN PAID DEBUG] Match type: {tournament.match_type}")
+                            
+                            # Only generate fixtures if tournament is now full and no fixtures exist yet
+                            if count == tournament.num_participants:
+                                existing_matches = Match.objects.filter(tournament=tournament)
+                                print(f"[JOIN PAID DEBUG] Tournament is full! Existing matches: {existing_matches.count()}")
+                                
+                                if not existing_matches.exists():
+                                    print(f"[JOIN PAID DEBUG] No existing matches, generating fixtures...")
+                                    if tournament.match_type == 'knockout':
+                                        if count >= 2 and (count & (count - 1)) == 0:  # Power of 2
+                                            print(f"[JOIN PAID DEBUG] Generating knockout fixtures for {count} players")
+                                            fixture_pairs = generate_knockout_fixtures(list(current_players))
+                                            
+                                            # Calculate stage based on number of matches
+                                            num_matches = len(fixture_pairs)
+                                            if num_matches == 1:
+                                                stage = 'FINAL'
+                                            elif num_matches == 2:
+                                                stage = 'SEMI'
+                                            elif num_matches == 4:
+                                                stage = 'QUARTER'
+                                            else:
+                                                stage = 'KNOCKOUT'
+                                            
+                                            print(f"[JOIN PAID DEBUG] Creating {num_matches} matches with stage: {stage}")
+                                            for p1, p2 in fixture_pairs:
+                                                Match.objects.create(
+                                                    tournament=tournament,
+                                                    player1=p1,
+                                                    player2=p2,
+                                                    stage=stage,
+                                                    round_number=1,
+                                                    scheduled_time=None
+                                                )
+                                            print(f"[JOIN PAID DEBUG] Created {len(fixture_pairs)} knockout matches")
+                                            messages.success(request, f'Successfully joined "{tournament.name}"! Tournament is now full and fixtures have been generated.')
+                                        else:
+                                            print(f"[JOIN PAID DEBUG] Player count {count} is not a power of 2")
+                                    elif tournament.match_type == 'league' and count >= 2:
+                                        print(f"[JOIN PAID DEBUG] Generating league fixtures for {count} players")
+                                        fixture_pairs = generate_league_fixtures([p.name for p in current_players])
+                                        name_to_player = {p.name: p for p in current_players}
+                                        for p1_name, p2_name in fixture_pairs:
+                                            Match.objects.create(
+                                                tournament=tournament,
+                                                player1=name_to_player[p1_name],
+                                                player2=name_to_player[p2_name],
+                                                stage='GROUP',
+                                                round_number=1,
+                                                scheduled_time=None
+                                            )
+                                        print(f"[JOIN PAID DEBUG] Created {len(fixture_pairs)} league matches")
+                                        messages.success(request, f'Successfully joined "{tournament.name}"! Tournament is now full and fixtures have been generated.')
+                                else:
+                                    print(f"[JOIN PAID DEBUG] Fixtures already exist, skipping generation")
+                                    messages.success(request, f'Successfully joined {tournament.name}!')
+                            
+                            if count < tournament.num_participants:
+                                messages.success(request, f'Successfully joined {tournament.name}!')
+                            
+                            return redirect('tournament_dashboard', tournament_id=tournament.id)
                         else:
                             # Create TournamentParticipant
                             TournamentParticipant.objects.create(
@@ -977,6 +1127,28 @@ def tournament_dashboard(request, tournament_id):
         except UserProfile.DoesNotExist:
             pass
     
+    # Get pending payments for hosts to approve
+    pending_payments = []
+    if is_host:
+        pending_payments = Payment.objects.filter(
+            tournament=tournament,
+            status='pending_approval'
+        ).select_related('user_profile__user').order_by('-created_at')
+    
+    # Check if current user has pending payment
+    user_payment_status = None
+    if request.user.is_authenticated and not is_host:
+        try:
+            user_profile = UserProfile.objects.get(user=request.user)
+            user_payment = Payment.objects.filter(
+                tournament=tournament,
+                user_profile=user_profile
+            ).order_by('-created_at').first()
+            if user_payment:
+                user_payment_status = user_payment.status
+        except UserProfile.DoesNotExist:
+            pass
+    
     return render(request, 'tournament_dashboard.html', {
         'tournament': tournament,
         'participants': participants,
@@ -992,6 +1164,8 @@ def tournament_dashboard(request, tournament_id):
         'can_leave': can_leave,
         'pending_leave_requests': pending_leave_requests,
         'user_has_pending_request': user_has_pending_request,
+        'pending_payments': pending_payments,
+        'user_payment_status': user_payment_status,
     })
 
 @login_required
@@ -1116,6 +1290,32 @@ def toggle_tournament_status(request, tournament_id):
 
 
 @login_required(login_url='login')
+def toggle_tournament_visibility(request, tournament_id):
+    """Allow host to toggle tournament public/private status"""
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    
+    # Check if user is the host
+    try:
+        host_profile = HostProfile.objects.get(user=request.user)
+        if tournament.created_by != host_profile:
+            messages.error(request, "You are not authorized to change tournament visibility.")
+            return redirect('tournament_dashboard', tournament_id=tournament.id)
+    except HostProfile.DoesNotExist:
+        messages.error(request, "You are not authorized to change tournament visibility.")
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+    
+    if request.method == 'POST':
+        # Toggle the public status
+        tournament.is_public = not tournament.is_public
+        tournament.save()
+        
+        visibility_text = "public" if tournament.is_public else "private"
+        messages.success(request, f'Tournament "{tournament.name}" is now {visibility_text}.')
+    
+    return redirect('tournament_dashboard', tournament_id=tournament.id)
+
+
+@login_required(login_url='login')
 def user_tournaments(request):
     user_profile = UserProfile.objects.get(user=request.user)
     host_profile = HostProfile.objects.filter(user=request.user).first()
@@ -1205,6 +1405,9 @@ def about(request):
     })
 
 
+def support(request):
+    """Render the Support & Help page."""
+    return render(request, 'support.html')
 
 
 @login_required(login_url='login')
@@ -1453,5 +1656,317 @@ def reject_leave_request(request, request_id):
         
         messages.success(request, f'Leave request from {leave_request.player.name} has been rejected.')
         return redirect('tournament_dashboard', tournament_id=tournament.id)
+    
+    return redirect('tournament_dashboard', tournament_id=tournament.id)
+
+
+@login_required(login_url='login')
+def payment_page(request, tournament_id):
+    """Payment page for paid tournaments"""
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    
+    # Check if tournament is paid
+    if not tournament.is_paid or tournament.price <= 0:
+        messages.error(request, 'This tournament is free.')
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+    
+    # Get or create user profile
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Check if user already paid
+    existing_payment = Payment.objects.filter(
+        tournament=tournament,
+        user_profile=user_profile,
+        status='completed'
+    ).first()
+    
+    if existing_payment:
+        messages.info(request, 'You have already paid for this tournament.')
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+    
+    context = {
+        'tournament': tournament,
+        'amount': tournament.price,
+    }
+    
+    return render(request, 'payment_page.html', context)
+
+
+@login_required(login_url='login')
+def initiate_payment(request, tournament_id):
+    """Initiate payment process"""
+    if request.method != 'POST':
+        return redirect('payment_page', tournament_id=tournament_id)
+    
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Check if already paid
+    existing_payment = Payment.objects.filter(
+        tournament=tournament,
+        user_profile=user_profile,
+        status='completed'
+    ).first()
+    
+    if existing_payment:
+        messages.info(request, 'You have already paid for this tournament.')
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+    
+    payment_method = request.POST.get('payment_method', 'bkash')
+    
+    # Generate unique transaction ID
+    import uuid
+    transaction_id = f"TFX{uuid.uuid4().hex[:12].upper()}"
+    
+    # Create payment record
+    payment = Payment.objects.create(
+        tournament=tournament,
+        user_profile=user_profile,
+        amount=tournament.price,
+        payment_method=payment_method,
+        transaction_id=transaction_id,
+        status='pending'
+    )
+    
+    # Store payment info in session
+    request.session['pending_payment_id'] = payment.id
+    request.session['pending_tournament_id'] = tournament.id
+    
+    # Redirect to payment confirmation page
+    return redirect('payment_confirmation', payment_id=payment.id)
+
+
+@login_required(login_url='login')
+def payment_confirmation(request, payment_id):
+    """Payment confirmation page where user enters payment details"""
+    payment = get_object_or_404(Payment, id=payment_id)
+    
+    # Verify user owns this payment
+    if payment.user_profile.user != request.user:
+        messages.error(request, 'Unauthorized access.')
+        return redirect('home')
+    
+    if payment.status == 'completed':
+        messages.info(request, 'This payment has already been completed.')
+        return redirect('tournament_dashboard', tournament_id=payment.tournament.id)
+    
+    if request.method == 'POST':
+        # Get payment details from user
+        sender_number = request.POST.get('sender_number', '')
+        trx_id = request.POST.get('trx_id', '')
+        
+        # Update payment record
+        payment.gateway_transaction_id = trx_id
+        payment.payment_details = {
+            'sender_number': sender_number,
+            'transaction_id': trx_id,
+            'payment_method': payment.payment_method,
+        }
+        payment.status = 'pending_approval'  # Changed from 'completed' to 'pending_approval'
+        
+        from django.utils import timezone
+        payment.completed_at = timezone.now()
+        payment.save()
+        
+        messages.info(request, f'Payment information submitted! Transaction ID: {payment.transaction_id}. The tournament host will verify your payment and approve your entry.')
+        
+        # Redirect to tournament dashboard instead of join
+        return redirect('tournament_dashboard', tournament_id=payment.tournament.id)
+    
+    context = {
+        'payment': payment,
+        'tournament': payment.tournament,
+    }
+    
+    return render(request, 'payment_confirmation.html', context)
+
+
+@login_required(login_url='login')
+def payment_success(request, tournament_id):
+    """Payment success callback"""
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Get payment from session
+    payment_id = request.session.get('pending_payment_id')
+    if payment_id:
+        payment = Payment.objects.filter(id=payment_id).first()
+        if payment:
+            payment.status = 'completed'
+            from django.utils import timezone
+            payment.completed_at = timezone.now()
+            payment.save()
+            
+            messages.success(request, 'Payment successful! You can now join the tournament.')
+            del request.session['pending_payment_id']
+            if 'pending_tournament_id' in request.session:
+                del request.session['pending_tournament_id']
+    
+    return redirect('join_public_tournament', tournament_id=tournament_id)
+
+
+@login_required(login_url='login')
+def payment_cancel(request, tournament_id):
+    """Payment cancel callback"""
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    
+    # Get payment from session
+    payment_id = request.session.get('pending_payment_id')
+    if payment_id:
+        payment = Payment.objects.filter(id=payment_id).first()
+        if payment:
+            payment.status = 'cancelled'
+            payment.save()
+            
+            del request.session['pending_payment_id']
+            if 'pending_tournament_id' in request.session:
+                del request.session['pending_tournament_id']
+    
+    messages.warning(request, 'Payment cancelled.')
+    return redirect('public_tournaments')
+
+
+@login_required(login_url='login')
+def approve_payment(request, payment_id):
+    """Approve a payment (host only)"""
+    payment = get_object_or_404(Payment, id=payment_id)
+    tournament = payment.tournament
+    
+    # Check if user is the host
+    try:
+        host_profile = HostProfile.objects.get(user=request.user)
+        if tournament.created_by != host_profile:
+            messages.error(request, 'You are not authorized to approve payments for this tournament.')
+            return redirect('tournament_dashboard', tournament_id=tournament.id)
+    except HostProfile.DoesNotExist:
+        messages.error(request, 'You must be a host to approve payments.')
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+    
+    if request.method == 'POST':
+        if payment.status != 'pending_approval':
+            messages.error(request, 'This payment is not pending approval.')
+            return redirect('tournament_dashboard', tournament_id=tournament.id)
+        
+        # Update payment status
+        payment.status = 'completed'
+        from django.utils import timezone
+        payment.completed_at = timezone.now()
+        payment.save()
+        
+        # Check if user is already a participant
+        user_profile = payment.user_profile
+        already_joined = TournamentParticipant.objects.filter(
+            tournament=tournament,
+            user_profile=user_profile
+        ).exists()
+        
+        if not already_joined:
+            # Check if tournament is full
+            current_players = Player.objects.filter(tournament=tournament).count()
+            if current_players >= tournament.num_participants:
+                messages.error(request, 'Cannot approve - tournament is full.')
+                payment.status = 'pending_approval'
+                payment.save()
+                return redirect('tournament_dashboard', tournament_id=tournament.id)
+            
+            # Create the player
+            new_player = Player.objects.create(
+                tournament=tournament,
+                name=user_profile.user.username,
+                team_name=user_profile.user.username,
+                added_by=None,
+                user_profile=user_profile
+            )
+            
+            # Link payment to player
+            payment.player = new_player
+            payment.save()
+            
+            # Add TournamentParticipant entry
+            TournamentParticipant.objects.get_or_create(
+                tournament=tournament,
+                user_profile=user_profile
+            )
+            
+            # Check if tournament is now full and generate fixtures
+            current_players = Player.objects.filter(tournament=tournament)
+            count = current_players.count()
+            
+            if count == tournament.num_participants:
+                existing_matches = Match.objects.filter(tournament=tournament)
+                
+                if not existing_matches.exists():
+                    if tournament.match_type == 'knockout':
+                        if count >= 2 and (count & (count - 1)) == 0:
+                            fixture_pairs = generate_knockout_fixtures(list(current_players))
+                            num_matches = len(fixture_pairs)
+                            if num_matches == 1:
+                                stage = 'FINAL'
+                            elif num_matches == 2:
+                                stage = 'SEMI'
+                            elif num_matches == 4:
+                                stage = 'QUARTER'
+                            else:
+                                stage = 'KNOCKOUT'
+                            
+                            for p1, p2 in fixture_pairs:
+                                Match.objects.create(
+                                    tournament=tournament,
+                                    player1=p1,
+                                    player2=p2,
+                                    stage=stage,
+                                    round_number=1,
+                                    scheduled_time=None
+                                )
+                            messages.success(request, f'Payment approved! {user_profile.user.username} has been added to the tournament. Fixtures have been generated.')
+                    elif tournament.match_type == 'league' and count >= 2:
+                        fixture_pairs = generate_league_fixtures([p.name for p in current_players])
+                        name_to_player = {p.name: p for p in current_players}
+                        for p1_name, p2_name in fixture_pairs:
+                            Match.objects.create(
+                                tournament=tournament,
+                                player1=name_to_player[p1_name],
+                                player2=name_to_player[p2_name],
+                                stage='GROUP',
+                                round_number=1,
+                                scheduled_time=None
+                            )
+                        messages.success(request, f'Payment approved! {user_profile.user.username} has been added to the tournament. Fixtures have been generated.')
+                else:
+                    messages.success(request, f'Payment approved! {user_profile.user.username} has been added to the tournament.')
+            else:
+                messages.success(request, f'Payment approved! {user_profile.user.username} has been added to the tournament.')
+        else:
+            messages.success(request, f'Payment approved for {user_profile.user.username}.')
+    
+    return redirect('tournament_dashboard', tournament_id=tournament.id)
+
+
+@login_required(login_url='login')
+def reject_payment(request, payment_id):
+    """Reject a payment (host only)"""
+    payment = get_object_or_404(Payment, id=payment_id)
+    tournament = payment.tournament
+    
+    # Check if user is the host
+    try:
+        host_profile = HostProfile.objects.get(user=request.user)
+        if tournament.created_by != host_profile:
+            messages.error(request, 'You are not authorized to reject payments for this tournament.')
+            return redirect('tournament_dashboard', tournament_id=tournament.id)
+    except HostProfile.DoesNotExist:
+        messages.error(request, 'You must be a host to reject payments.')
+        return redirect('tournament_dashboard', tournament_id=tournament.id)
+    
+    if request.method == 'POST':
+        if payment.status != 'pending_approval':
+            messages.error(request, 'This payment is not pending approval.')
+            return redirect('tournament_dashboard', tournament_id=tournament.id)
+        
+        # Update payment status
+        payment.status = 'rejected'
+        payment.save()
+        
+        messages.warning(request, f'Payment from {payment.user_profile.user.username} has been rejected.')
     
     return redirect('tournament_dashboard', tournament_id=tournament.id)
