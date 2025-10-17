@@ -73,63 +73,9 @@
     opacity: 1; 
   }
   #sideLongImage.hide-on-bg { opacity: 0 !important; pointer-events: none; }
-
-  /* Left floating image: visuals handled via Tailwind classes in markup (bigger and shifted left) */
 </style>
 <link rel="stylesheet" href="{% static 'css/leaderboard.css' %}">
 {% endblock %}
-
-
-{% block extra_debug %}
-<script>
-  (function(){
-    const v = document.getElementById('heroVideo');
-    if (!v) return;
-    try {
-      v.playbackRate = 2;
-      const srcs = Array.from(v.querySelectorAll('source')).map(s => s.src);
-      console.log('Hero video element found. Sources:', srcs);
-
-      // Try to play and report error if any
-      v.play().then(() => {
-        console.log('Hero video playback started successfully.');
-      }).catch(err => {
-        console.error('Hero video play() failed:', err);
-        // show a small non-blocking message on the page
-        let msg = document.getElementById('videoErrorMsg');
-        if (!msg) {
-          msg = document.createElement('div');
-          msg.id = 'videoErrorMsg';
-          msg.style.position = 'fixed';
-          msg.style.bottom = '12px';
-          msg.style.left = '12px';
-          msg.style.padding = '8px 12px';
-          msg.style.background = 'rgba(0,0,0,0.6)';
-          msg.style.color = '#fff';
-          msg.style.zIndex = '100000';
-          msg.style.borderRadius = '6px';
-          msg.style.fontSize = '13px';
-          msg.textContent = 'Video failed to autoplay — open DevTools Console to see details.';
-          document.body.appendChild(msg);
-        }
-        // show the play overlay so user can start the video manually
-        const overlay = document.getElementById('videoPlayOverlay');
-        if (overlay) {
-          overlay.classList.remove('hidden');
-        }
-      });
-    } catch (e) {
-      console.error('Error while testing hero video:', e);
-    }
-  })();
-</script>
-{% endblock %}
-<script src="{% static 'js/players-table.js' %}"></script>
-
-
-
-
-
 
 
 {% block content %}
@@ -161,10 +107,6 @@
 <div id="sideLongImage" aria-hidden="true" class="hidden md:block">
   <img src="{% static 'images/omen.png' %}" alt="" class="w-full h-full object-cover object-center">
 </div>
-
-
-<!-- Left floating image removed for cleaner layout -->
-<div class="fixed top-0 left-0 w-screen h-screen z-10 pointer-events-none overflow-hidden"></div>
 
 <!-- Floating Nav (top-right) -->
 <div class="fixed top-0 left-0 w-full z-20 pointer-events-none">
