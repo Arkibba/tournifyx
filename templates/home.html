@@ -646,5 +646,23 @@
     }
   })();
 </script>
+<script>
+  // Smooth scroll for "Watch Esports Games" button
+  (function(){
+    const esportsButton = document.querySelector('a[href="#esports-games"]');
+    if (!esportsButton) return;
+    
+    esportsButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetSection = document.getElementById('esports-games');
+      if (targetSection) {
+        targetSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  })();
+</script>
 </div> <!-- Close overflow wrapper -->
 {% endblock %}
