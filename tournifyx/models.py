@@ -7,6 +7,7 @@ class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     cover_photo = models.ImageField(upload_to='covers/', null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
 
     def _str_(self):
         return self.user.username
@@ -53,6 +54,7 @@ class Tournament(models.Model):
     is_active = models.BooleanField(default=True)
     is_paid = models.BooleanField(default=False)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
+    payment_phone = models.CharField(max_length=20, null=True, blank=True)  # Phone for receiving payments
     is_public = models.BooleanField(default=False)  # Add this line
     registration_deadline = models.DateTimeField(null=True, blank=True)
     is_finished = models.BooleanField(default=False)  # Host can manually mark tournament as finished

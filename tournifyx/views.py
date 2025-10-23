@@ -151,6 +151,23 @@ def profile_view(request, username):
     return render(request, 'profile.html', context)
 
 
+@login_required(login_url='login')
+def get_profile_phone(request):
+    """API endpoint to get user's profile phone number"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        return JsonResponse({
+            'phone_number': user_profile.phone_number or '',
+            'has_phone': bool(user_profile.phone_number)
+        })
+    except UserProfile.DoesNotExist:
+        return JsonResponse({
+            'phone_number': '',
+            'has_phone': False
+        })
+    return render(request, 'profile.html', context)
+
+
 
 
 @login_required
@@ -691,7 +708,26 @@ def host_tournament(request):
             # Explicitly set is_paid and price from form.cleaned_data
             tournament.is_paid = form.cleaned_data.get('is_paid', False)
             tournament.price = form.cleaned_data.get('price', 0)
-            print(f"[HOST DEBUG] is_paid: {tournament.is_paid}, price: {tournament.price}")
+            
+            # Handle payment phone number
+            if tournament.is_paid:
+                use_profile_phone = form.cleaned_data.get('use_profile_phone', True)
+                if use_profile_phone:
+                    # Get phone from user profile
+                    try:
+                        user_profile = UserProfile.objects.get(user=request.user)
+                        tournament.payment_phone = user_profile.phone_number
+                    except UserProfile.DoesNotExist:
+                        messages.error(request, 'Please add a phone number to your profile first.')
+                        return redirect('host_tournament')
+                else:
+                    # Use custom phone number
+                    tournament.payment_phone = form.cleaned_data.get('payment_phone')
+                    if not tournament.payment_phone:
+                        messages.error(request, 'Please provide a phone number for receiving payments.')
+                        return redirect('host_tournament')
+            
+            print(f"[HOST DEBUG] is_paid: {tournament.is_paid}, price: {tournament.price}, payment_phone: {tournament.payment_phone}")
             # Generate a unique tournament code
             code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
             while Tournament.objects.filter(code=code).exists():

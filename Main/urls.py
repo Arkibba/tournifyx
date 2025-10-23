@@ -57,6 +57,7 @@ urlpatterns = [
    path('tournament/<int:tournament_id>/knockout-json/', views.tournament_knockout_json, name='tournament_knockout_json'),
    path('tournament/<int:tournament_id>/regenerate/', views.regenerate_fixtures, name='regenerate_fixtures'),
    path('profile/<str:username>/', views.profile_view, name='profile_view'),
+   path('api/get-profile-phone/', views.get_profile_phone, name='get_profile_phone'),
    #path('payment/success/<int:tournament_id>/', views.payment_success, name='payment_success'),
    #path('payment/cancel/<int:tournament_id>/', views.payment_cancel, name='payment_cancel'),
    

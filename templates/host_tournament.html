@@ -210,6 +210,30 @@
               {{ form.price|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all" }}
             </div>
 
+            <!-- Payment Phone Options (conditional) -->
+            <div class="md:col-span-2" id="paymentPhoneOptions" style="display: none;">
+              <div class="p-4 bg-white/5 border border-gray-600 rounded-lg space-y-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-phone text-orange-500 text-xl"></i>
+                    <div>
+                      <label class="font-semibold text-white cursor-pointer">Use Profile Phone Number</label>
+                      <p class="text-sm text-gray-400">Use the phone number from your profile: <span id="profilePhoneDisplay" class="text-orange-400 font-mono"></span></p>
+                    </div>
+                  </div>
+                  {{ form.use_profile_phone|add_class:"toggle-checkbox" }}
+                </div>
+
+                <div id="customPhoneField" style="display: none;">
+                  <label class="block text-sm font-semibold text-gray-300 mb-2">
+                    <i class="fas fa-mobile-alt text-orange-500 mr-2"></i>Custom Payment Phone Number
+                  </label>
+                  {{ form.payment_phone|add_class:"w-full px-4 py-3 bg-white/5 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all" }}
+                  <p class="text-xs text-gray-400 mt-1">This number will receive tournament registration fees</p>
+                </div>
+              </div>
+            </div>
+
             <!-- Public Tournament Toggle -->
             <div class="md:col-span-2">
               <div class="flex items-center justify-between p-4 bg-white/5 border border-gray-600 rounded-lg hover:border-orange-500/50 transition-all">
@@ -516,6 +540,53 @@ function updateReview() {
 document.addEventListener('DOMContentLoaded', function() {
   const isPaidCheckbox = document.querySelector('input[name="is_paid"]');
   const priceField = document.getElementById('priceField');
+  const paymentPhoneOptions = document.getElementById('paymentPhoneOptions');
+  const useProfilePhoneCheckbox = document.querySelector('input[name="use_profile_phone"]');
+  const customPhoneField = document.getElementById('customPhoneField');
+  const profilePhoneDisplay = document.getElementById('profilePhoneDisplay');
+  
+  // Fetch and display user's profile phone number
+  fetch('/api/get-profile-phone/')
+    .then(response => response.json())
+    .then(data => {
+      if (data.phone_number) {
+        profilePhoneDisplay.textContent = data.phone_number;
+      } else {
+        profilePhoneDisplay.textContent = 'Not set - Please add in profile';
+        profilePhoneDisplay.classList.add('text-red-400');
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching profile phone:', error);
+      profilePhoneDisplay.textContent = 'Error loading';
+    });
+  
+  if (isPaidCheckbox) {
+    isPaidCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        priceField.style.display = 'block';
+        paymentPhoneOptions.style.display = 'block';
+      } else {
+        priceField.style.display = 'none';
+        paymentPhoneOptions.style.display = 'none';
+      }
+    });
+  }
+  
+  if (useProfilePhoneCheckbox) {
+    useProfilePhoneCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        customPhoneField.style.display = 'none';
+      } else {
+        customPhoneField.style.display = 'block';
+      }
+    });
+    
+    // Set initial state
+    if (!useProfilePhoneCheckbox.checked) {
+      customPhoneField.style.display = 'block';
+    }
+  }
   
   if (isPaidCheckbox) {
     isPaidCheckbox.addEventListener('change', function() {

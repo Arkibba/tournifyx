@@ -41,10 +41,11 @@ class ContactForm(forms.Form):
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     profile_picture = forms.ImageField(required=False, help_text="Optional profile picture (max 5MB)")
+    phone_number = forms.CharField(max_length=20, required=True, help_text="Phone number for payments and contact")
     
     class Meta:
         model = User
-        fields = ("username", "email", "password1", "password2", "profile_picture")
+        fields = ("username", "email", "phone_number", "password1", "password2", "profile_picture")
     
     def clean_password1(self):
         # Override to remove all password validation
@@ -71,12 +72,15 @@ class CustomUserCreationForm(UserCreationForm):
         user.email = self.cleaned_data["email"]
         if commit:
             user.save()
-            # Create or get UserProfile with profile picture
+            # Create or get UserProfile with profile picture and phone number
             profile_picture = self.cleaned_data.get('profile_picture')
+            phone_number = self.cleaned_data.get('phone_number')
             user_profile, created = UserProfile.objects.get_or_create(user=user)
             if profile_picture:
                 user_profile.avatar = profile_picture
-                user_profile.save()
+            if phone_number:
+                user_profile.phone_number = phone_number
+            user_profile.save()
         return user
 
 
@@ -120,12 +124,14 @@ class TournamentForm(forms.ModelForm):
         return cleaned_data
     is_paid = forms.BooleanField(required=False, label="Paid Tournament")
     price = forms.DecimalField(required=False, min_value=0, label="Price to Join", initial=0.00)
+    payment_phone = forms.CharField(max_length=20, required=False, label="Payment Phone Number")
+    use_profile_phone = forms.BooleanField(required=False, label="Use my profile phone number", initial=True)
     is_public = forms.BooleanField(required=False, label="Public Tournament")
     is_active = forms.BooleanField(required=False, label="Active Tournament")
 
     class Meta:
         model = Tournament
-        fields = ['name', 'description', 'category', 'num_participants', 'match_type', 'is_paid', 'price', 'is_public', 'is_active', 'registration_deadline']
+        fields = ['name', 'description', 'category', 'num_participants', 'match_type', 'is_paid', 'price', 'payment_phone', 'is_public', 'is_active', 'registration_deadline']
         widgets = {
             'name': forms.TextInput(attrs={
                 'placeholder': 'Enter tournament name',
