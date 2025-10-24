@@ -587,9 +587,8 @@ def update_match_result(request, match_id):
 def update_points_for_match(match, prev_result=None):
     # Recalculate the entire point table for the tournament
     tournament = match.tournament
-    # Only maintain point tables for league tournaments
-    if tournament.match_type == 'knockout':
-        return
+    
+    # Update point tables for both league AND knockout tournaments
     players = Player.objects.filter(tournament=tournament)
     # Reset all point table entries
     for pt in PointTable.objects.filter(tournament=tournament):
